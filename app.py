@@ -1,19 +1,11 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-import redis
 from minio import Minio
 import os
 
-from db.connection import db, init_db
-import db.models
-
+from api import users_bp
+from db.client import db_client, init_db
+from redis_lib import redis_client
 import seed.seed_db as seed_db
-
-def init_redis():
-    # TODO: refactor into own file
-    r = redis.Redis(host='redis', port=6379, db=0)
-    r.set('count', 1)
-    return r
 
 def init_minio():
     # TODO: refactor into own file
@@ -51,19 +43,25 @@ def test_minio(minio_client: Minio):
 
 
 def create_app():
+    # app client
     app = Flask(__name__)
     app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://postgres:{os.environ['POSTGRES_PASSWORD']}@postgres:5432/postgres"
     
+    # blueprints
+    app.register_blueprint(users_bp)
+
+
     # init db and seed data
     init_db(app)
     with app.app_context():
-        db.create_all()
+        db_client.create_all()
+        seed_db.seed_all(db_client.session)
+
+    return app
     
-    seed_db.seed_all(db)
     
     
 app = create_app()
-redis_client = init_redis()
 minio_client = init_minio()
 
 test_minio(minio_client)

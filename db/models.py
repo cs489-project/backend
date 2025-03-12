@@ -1,16 +1,16 @@
 from enum import Enum
-from db.connection import db
-from sqlalchemy.orm import Mapped, mapped_column, relationship, ForeignKey
+from db.client import db_client
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String
 from datetime import datetime
 from typing import Optional, List
 
-class BaseModel(db.Model):
+class BaseModel(db_client.Model):
     __abstract__ = True
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    created_at: Mapped[datetime] = mapped_column(server_default=db.func.now())
-    updated_at: Mapped[datetime] = mapped_column(server_default=db.func.now(), server_onupdate=db.func.now())
+    created_at: Mapped[datetime] = mapped_column(server_default=db_client.func.now())
+    updated_at: Mapped[datetime] = mapped_column(server_default=db_client.func.now(), server_onupdate=db_client.func.now())
 
 
 class AuthStage(Enum):
@@ -46,10 +46,10 @@ class Report(BaseModel):
     # relationships
     comments: Mapped[List["Comment"]] = relationship('Comment', back_populates='report')
 
-    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
+    user_id: Mapped[int] = mapped_column(db_client.ForeignKey('users.id'))
     user: Mapped["User"] = relationship('User', back_populates='reports')
 
-    job_request_id: Mapped[int] = mapped_column(ForeignKey('job_requests.id'))
+    job_request_id: Mapped[int] = mapped_column(db_client.ForeignKey('job_requests.id'))
     job_request: Mapped["JobRequest"] = relationship('JobRequest', back_populates='report')
 
 class Comment(BaseModel):
@@ -58,10 +58,10 @@ class Comment(BaseModel):
     # other fields
 
     # relationships
-    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
+    user_id: Mapped[int] = mapped_column(db_client.ForeignKey('users.id'))
     user: Mapped["User"] = relationship('User', back_populates='comments')
 
-    report_id: Mapped[int] = mapped_column(ForeignKey('reports.id'))
+    report_id: Mapped[int] = mapped_column(db_client.ForeignKey('reports.id'))
     report: Mapped["Report"] = relationship('Report', back_populates='comments')
 
 class JobRequest(BaseModel):
@@ -72,5 +72,5 @@ class JobRequest(BaseModel):
     # relationships
     report: Mapped["Report"] = relationship('Report', back_populates='job_request')
 
-    organization_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
+    organization_id: Mapped[int] = mapped_column(db_client.ForeignKey('users.id'))
     organization: Mapped["User"] = relationship('User', back_populates='job_requests')

@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 
-db = SQLAlchemy()
+db_client = SQLAlchemy()
 
 def init_db(app: Flask):
-    db.init_app(app)
+    db_client.init_app(app)

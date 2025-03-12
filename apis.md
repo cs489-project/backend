@@ -2,11 +2,11 @@
 
 ## User
 
-### /auth/user/register
+### /user/register
 
 Name, email, password, OTP "seed"
 
-### /auth/user/login
+### /user/login
 
 email, password, OTP "seed"
 
@@ -57,9 +57,10 @@ job_request opt
 ### get_requests
 
 3 way flag
- - only rejected
- - only approved
- - both
+
+- only rejected
+- only approved
+- both
 
 ## User
 
@@ -68,6 +69,7 @@ job_request opt
 ### get_requests
 
 org_id (opt)
+
 sort feature for most recent
 
 ### create_report
