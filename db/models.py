@@ -27,7 +27,7 @@ class User(BaseModel):
     __tablename__ = 'users'
     
     name: Mapped[str] = mapped_column(String(100))
-    email: Mapped[str] = mapped_column()
+    email: Mapped[str] = mapped_column(unique=True)
     password: Mapped[str] = mapped_column()
     salt: Mapped[str] = mapped_column()
     totp_secret: Mapped[Optional[str]] = mapped_column()
@@ -37,6 +37,8 @@ class User(BaseModel):
     # relationships
     reports: Mapped[List["Report"]] = relationship('Report', back_populates='user')
     comments: Mapped[List["Comment"]] = relationship('Comment', back_populates='user')
+    job_requests: Mapped[List["JobRequest"]] = relationship('JobRequest', back_populates='organization')
+
 
 
 class Report(BaseModel):

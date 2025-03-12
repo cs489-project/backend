@@ -48,7 +48,7 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://postgres:{os.environ['POSTGRES_PASSWORD']}@postgres:5432/postgres"
     
     # blueprints
-    app.register_blueprint(users_bp)
+    app.register_blueprint(users_bp, url_prefix='/api/users')
 
 
     # init db and seed data
