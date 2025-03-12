@@ -54,8 +54,8 @@ def create_app():
     app = Flask(__name__)
     app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://postgres:{os.environ['POSTGRES_PASSWORD']}@postgres:5432/postgres"
     
+    # init db and seed data
     init_db(app)
-
     with app.app_context():
         db.create_all()
     
