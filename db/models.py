@@ -69,7 +69,8 @@ class Comment(BaseModel):
 class JobRequest(BaseModel):
     __tablename__ = 'job_requests'
 
-    # other fields
+    title: Mapped[str] = mapped_column()
+    description: Mapped[str] = mapped_column()
 
     # relationships
     report: Mapped["Report"] = relationship('Report', back_populates='job_request')
