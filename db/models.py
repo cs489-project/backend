@@ -23,6 +23,13 @@ class Role(Enum):
     RESEARCHER = 'researcher'
     ORGANIZATION = 'organization'
 
+class RequestState(Enum):
+    CREATED = 'created' # created, but not submitted for approval
+    SUBMITTED = 'submitted'
+    REJECTED = 'rejected'
+    APPROVED = 'approved'
+    ARCHIVED = 'archived' # "deleted" but visible for creater
+
 class User(BaseModel):
     __tablename__ = 'users'
     
@@ -71,6 +78,7 @@ class JobRequest(BaseModel):
 
     title: Mapped[str] = mapped_column()
     description: Mapped[str] = mapped_column()
+    state: Mapped[RequestState] = mapped_column(default=RequestState.CREATED)
 
     # relationships
     report: Mapped["Report"] = relationship('Report', back_populates='job_request')

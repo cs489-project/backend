@@ -1,12 +1,12 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import Session
-from db.models import User, JobRequest, AuthStage, Role
+from db.models import User, JobRequest, AuthStage, Role, RequestState
 from api.user import hash_password
 
 def seed_users(session: Session):
     users = [
-        {'name':'Test Org 1', 'email':'testorg1@dummy', 'password':'password', 'salt':'', 'totp_secret':'', 'role':Role.ORGANIZATION},
-        {'name':'Test Org 2', 'email':'testorg2@dummy', 'password':'password', 'salt':'', 'totp_secret':'', 'role':Role.ORGANIZATION},
+        {'name': 'Test Org 1', 'email': 'testorg1@dummy', 'password': 'password', 'salt': '', 'totp_secret': '', 'role': Role.ORGANIZATION},
+        {'name': 'Test Org 2', 'email': 'testorg2@dummy', 'password': 'password', 'salt': '', 'totp_secret': '', 'role': Role.ORGANIZATION},
     ]
     
     try:
@@ -19,7 +19,7 @@ def seed_users(session: Session):
 
 def seed_requests(session: Session):
     requests = [
-        {'title':'First request', 'description':'# Title\n\n This is a test', 'organization_id':1}
+        {'title': 'First request', 'description': '# Title\n\n This is a test', 'organization_id': 1, 'state': RequestState.APPROVED}
     ]
 
     try:
