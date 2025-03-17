@@ -62,12 +62,37 @@ def register():
     name: str = data.get('name')
     email: str = data.get('email')
     password: str = data.get('password')
-    # TODO: add password length check
+    if (len(password) < 10):
+        return jsonify({"error": "Password must be at least 10 characters"}), 400
 
     salt = generate_salt()
     print('generated', password, salt)
     hashed_password = hash_password(password, salt)
     user = User(name=name, email=email, password=hashed_password, salt=salt, role=Role.RESEARCHER)
+
+    try:
+        db_client.session.add(user)
+        db_client.session.commit()
+    except:
+        return jsonify({"error": "Error registering"}), 400
+    
+    session_id = session.set_session_pending_mfa(user.id)
+    response = jsonify({"message": "Registered"})
+    response.set_cookie('session_id', session_id, httponly=True, secure=True)
+    return response, 200
+
+@users_bp.route('/register-org', methods=['POST'])
+def register_org():
+    data = request.json
+    name: str = data.get('name')
+    email: str = data.get('email')
+    password: str = data.get('password')
+    if (len(password) < 10):
+        return jsonify({"error": "Password must be at least 10 characters"}), 400
+
+    salt = generate_salt()
+    hashed_password = hash_password(password, salt)
+    user = User(name=name, email=email, password=hashed_password, salt=salt, role=Role.ORGANIZATION)
 
     try:
         db_client.session.add(user)
