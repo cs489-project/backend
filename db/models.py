@@ -15,7 +15,8 @@ class BaseModel(db_client.Model):
 
 class AuthStage(Enum):
     PASSWORD = 'password'
-    MFA = 'mfa'
+    PENDING_MFA = 'pending_mfa' # user hasn't entered their first TOTP code yet
+    MFA_VERIFIED = 'mfa_verified'
     EMAIL_VERIFIED = 'email_verified'
 
 class Role(Enum):

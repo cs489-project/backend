@@ -2,13 +2,22 @@
 
 ## User
 
-### /user/register
+### /api/users/register
 
 Name, email, password, OTP "seed"
 
-### /user/login
+### /api/users/login-password
 
 email, password, OTP "seed"
+
+### /api/users/login-mfa
+- code: string
+- Updates the session object with the user's MFA status
+- If it's the first time the user logs in with MFA, it will change the user's status to `mfa_verified`
+
+### /api/users/register-mfa
+- generates a new MFA secret for the user, update the user's status to `mfa_pending`
+- returns the uri for the QR code
 
 ## Organization
 
