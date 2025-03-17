@@ -1,7 +1,7 @@
 from enum import Enum
 from functools import wraps
 from flask import request, jsonify
-from db.models import AuthStage, User
+from db.models import AuthStage, Role, User
 from db.client import db_client
 from redis_lib.session import SessionAuthStage, fetch_session
 
@@ -18,6 +18,15 @@ def min_session_auth_stage(session_auth_stage: SessionAuthStage, minimum_session
     return stages.index(session_auth_stage) >= stages.index(minimum_session_auth_stage)
 
 def authenticate():
+   """
+    Authenticate the user based on the session ID in the request cookie.
+    Attaches the user and session to the request object.
+    ```
+    request.user: User
+    request.session: dict
+    request.session_id: str
+    ```
+   """
    def decorator(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -47,6 +56,11 @@ def check_auth_stage(
         auth_stage: AuthStage = AuthStage.MFA_VERIFIED,  # minimum auth stage required
         session_auth_stage: SessionAuthStage = SessionAuthStage.MFA # minimum session auth stage required
     ):
+   """
+    `AuthStage` is the auth stage that exists for the user in the database (ie. has the user ever verified their 2FA).
+
+    `SessionAuthStage` is the auth stage that exists for the user for this current session (ie. did they verify 2FA this session).
+   """
    def decorator(func):
        @wraps(func)
        def wrapper(*args, **kwargs):
@@ -66,7 +80,10 @@ def check_auth_stage(
    return decorator
 
 
-def check_roles(roles):
+def check_roles(roles: list[Role]):
+   """
+   `roles` is a list of roles that are allowed to access the route.
+   """
    def decorator(func):
        @wraps(func)
        def wrapper(*args, **kwargs):
