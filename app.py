@@ -63,6 +63,6 @@ def create_app():
     
     
 app = create_app()
-minio_client = init_minio()
+# minio_client = init_minio()
 
-test_minio(minio_client)
+# test_minio(minio_client)
