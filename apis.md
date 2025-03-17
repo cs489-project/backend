@@ -2,13 +2,102 @@
 
 ## User
 
-### /user/register
+### /api/users/register
 
-Name, email, password, OTP "seed"
+Request body
 
-### /user/login
+```ts
+{
+	"name": string
+	"email": string
+	"password": string
+}
+```
 
-email, password, OTP "seed"
+Response
+
+```ts
+set-cookie: session_id, httponly=True, secure=True
+response 200 {
+	"message": "Registered"
+}
+
+response 400 {
+	"error": "Error registering"
+}
+```
+
+### /api/users/register-mfa
+
+- generates a new MFA secret for the user, update the user's status to `mfa_pending`
+- returns the uri for the QR code
+
+Request
+
+```ts
+cookie: session_id
+```
+
+Response
+
+```ts
+response 200 {
+  "uri": string
+}
+```
+
+### /api/users/login-password
+
+Request
+
+```ts
+{
+	"email": string
+	"password": string
+}
+```
+
+Response
+
+```ts
+set-cookie: session_id, httponly=True, secure=True
+response 200 {
+	"message": "Logged in"
+}
+
+response 401 {
+	"error": "Error logging in"
+}
+```
+
+### /api/users/login-mfa
+
+- Updates the session object to be post MFA, long lived session
+- If it's the first time the user logs in with MFA, it will change the user's status to `mfa_verified`
+
+Request
+
+```ts
+cookie: session_id
+request body {
+	"code": number
+}
+```
+
+Response
+
+```ts
+set-cookie: session_id, httponly=True, secure=True
+response 200 {
+	"message": "Logged in"
+}
+
+response 401 {
+	"error": "Error logging in"
+}
+```
+
+
 
 ## Organization
 
