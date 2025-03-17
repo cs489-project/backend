@@ -23,9 +23,11 @@ def set_session_pending_mfa(user_id: int):
     Returns the session ID
     """
     # remove any existing session if it exists
-    session_id = redis_client.get(f"user:{user_id}:session").decode('utf-8')
-    print("Existing session", session_id)
-    delete_session(session_id)
+    session_id = redis_client.get(f"user:{user_id}:session")
+    if session_id:
+        session_id = session_id.decode('utf-8')
+        print("Existing session", session_id)
+        delete_session(session_id)
 
     session_id = generate_session_id()
     key = get_session_key(session_id)
