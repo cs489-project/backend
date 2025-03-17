@@ -94,6 +94,24 @@ def register_mfa():
     return jsonify({"uri": uri}), 200
 
 
+@users_bp.route('/logout', methods=['POST'])
+@authenticate()
+def logout():
+    session.delete_session(request.session_id)
+    return jsonify({"message": "Logged out"}), 200
+
+
+@users_bp.route('/me', methods=['GET'])
+@authenticate()
+def me():
+    user: User = request.user
+    return jsonify({
+        "name": user.name, 
+        "email": user.email, 
+        "role": user.role.value,
+        "auth_stage": user.auth_stage.value
+    }), 200
+
 # sanity check routes
 @users_bp.route('/check-admin-researcher', methods=['GET'])
 @authenticate()

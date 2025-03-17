@@ -8,6 +8,7 @@ def seed_users(session: Session):
         {'name': 'Test Org 1', 'email': 'testorg1@dummy', 'password': 'password', 'salt': '', 'totp_secret': '', 'role': Role.ORGANIZATION},
         {'name': 'Test Org 2', 'email': 'testorg2@dummy', 'password': 'password', 'salt': '', 'totp_secret': '', 'role': Role.ORGANIZATION},
         {'name': 'Shariiii', 'email': 'shari@bytebreaker', 'password': 'password123', 'salt': '', 'totp_secret': '', 'role': Role.RESEARCHER},
+        {'name': 'admin', 'email': 'admin@bytebreaker', 'password': 'password123', 'salt': '', 'totp_secret': '', 'role': Role.ADMIN},
     ]
     
     try:

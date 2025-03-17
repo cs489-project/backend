@@ -2,7 +2,7 @@ from flask import Flask
 from minio import Minio
 import os
 
-from api import users_bp
+from api import users_bp, admin_bp
 from db.client import db_client, init_db
 from redis_lib import redis_client
 import seed.seed_db as seed_db
@@ -49,6 +49,7 @@ def create_app():
     
     # blueprints
     app.register_blueprint(users_bp, url_prefix='/api/users')
+    app.register_blueprint(admin_bp, url_prefix='/api/admin')
 
 
     # init db and seed data
@@ -65,8 +66,3 @@ app = create_app()
 minio_client = init_minio()
 
 test_minio(minio_client)
-
-@app.route('/api')
-def hello():
-    redis_client.incr('count')
-    return f"Hello World {redis_client.get('count')}"
