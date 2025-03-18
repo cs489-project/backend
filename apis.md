@@ -216,6 +216,28 @@ Response
 }[]
 ```
 
+### /api/admin/approve-organization
+- Manually approving an organization
+
+Request
+
+```ts
+cookie: session_id
+{
+  "organization_id": int
+}
+```
+
+Response
+
+```ts
+404 - User not found
+400 - User is not an organization
+200 - {"message": "Organization approved"}
+```
+
+
+
 ## Organization
 
 ### /auth/org/register
@@ -441,6 +463,7 @@ Response
 ### GET /api/requests/get-all
 
 Depending on user role:
+
 - `Researcher` - returns all approved requests
 - `Organization` - returns all requests by the org
 - `Admin` - returns all requests
@@ -471,6 +494,7 @@ Response
 ### GET /api/requests/get-by-id
 
 Depending on user role:
+
 - `Researcher` - returns request if approved
 - `Organization/Admin` - returns request
 
@@ -504,6 +528,7 @@ Response
 ### GET /api/reports/get-all
 
 Depending on user role:
+
 - `Researcher` - returns reports if they created them
 - `Organization` - returns reports if they own the request
 
@@ -532,6 +557,7 @@ Response
 ### GET /api/reports/get-by-id
 
 Depending on user role:
+
 - `Researcher` - returns report if they created it
 - `Organization` - returns report if they own the request
 

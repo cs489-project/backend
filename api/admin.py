@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from db.models import AuthStage, User, Role, JobRequest, JobRequestState
 from db.client import db_client
 from middleware.auth import SessionAuthStage, check_auth_stage, authenticate, check_roles
+from json import dumps, loads
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -45,7 +46,7 @@ def organizations():
 @check_auth_stage()
 @check_roles([Role.ADMIN])
 def user():
-    user_id: str = request.json.get('user_id')
+    user_id: int = request.json.get('user_id')
     user = db_client.session.query(User).filter_by(id=user_id).first()
     if not user:
         return jsonify({"error": "User not found"}), 404
@@ -55,6 +56,26 @@ def user():
         "id": user.id,
         "auth_stage": user.auth_stage.value
     }), 200
+
+
+@admin_bp.route('/approve-organization', methods=['GET'])
+@authenticate()
+@check_auth_stage()
+@check_roles([Role.ADMIN])
+def approve_organization():
+    organization_id: int = request.json.get('organization_id')
+    org = db_client.session.query(User).filter_by(id=organization_id).first()
+    if not org:
+        return jsonify({"error": "User not found"}), 404
+    if org.role != Role.ORGANIZATION:
+        return jsonify({"error": "User is not an organization"}), 400
+    
+    md = loads(org.md)
+    md['approved'] = True
+    org.md = dumps(md)
+    db_client.session.commit()
+    return jsonify({"message": "Organization approved"}), 200
+
 
 @admin_bp.route('/approve-request', methods=['POST'])
 @authenticate()

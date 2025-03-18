@@ -62,8 +62,8 @@ def register():
     name: str = data.get('name')
     email: str = data.get('email')
     password: str = data.get('password')
-    if (len(password) < 10):
-        return jsonify({"error": "Password must be at least 10 characters"}), 400
+    if (len(password) < 10 or len(password) > 64):
+        return jsonify({"error": "Password must be between 10 to 64 characters"}), 400
 
     salt = generate_salt()
     print('generated', password, salt)
@@ -88,8 +88,8 @@ def register_org():
     email: str = data.get('email')
     password: str = data.get('password')
     logo_url: str = data.get('logo_url')
-    if (len(password) < 10):
-        return jsonify({"error": "Password must be at least 10 characters"}), 400
+    if (len(password) < 10 or len(password) > 64):
+        return jsonify({"error": "Password must be between 10 to 64 characters"}), 400
 
     salt = generate_salt()
     hashed_password = hash_password(password, salt)
