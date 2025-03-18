@@ -228,8 +228,6 @@ Response
 
 ### POST /api/admin/approve-request
 
-Restricted to `Admin`
-
 Request
 
 ```ts
@@ -248,8 +246,6 @@ Response
 
 ### POST /api/admin/reject-request
 
-Restricted to `Admin`
-
 Request
 
 ```ts
@@ -267,8 +263,6 @@ Response
 ```
 
 ### POST /api/admin/delete-request
-
-Restricted to `Admin`
 
 Request
 
