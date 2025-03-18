@@ -149,3 +149,37 @@ def get_by_id():
             } for _ in [r]][0]
     
         return jsonify({"message": "Report returned", "report": r}), 200
+
+@reports_bp.route('/comment', methods=['POST'])
+@authenticate()
+# @check_auth_stage()
+@check_roles([Role.RESEARCHER, Role.ORGANIZATION])
+def comment():
+    u: User = request.user
+    data = request.json
+    report_id: str = data.get('report_id')
+    content: str = data.get('content')
+    
+    # Check both have correct permissions first
+    if u.role == Role.RESEARCHER:
+        r = db_client.session.query(Report).filter_by(user_id=u.id).filter_by(id=report_id).first()
+
+        if not r:
+            return jsonify({"error": "Error finding report or invalid credentials"}), 404
+    elif u.role == Role.ORGANIZATION:
+        r = db_client.session.query(Report).filter_by(id=report_id).first()
+        
+        if not r or r.job_request.organization_id != u.id:
+            return jsonify({"error": "Error finding report or invalid credentials"}), 404
+
+    c = Comment(content=content, user_id=u.id, report_id=report_id)
+    r = db_client.session.query(Report).filter_by(id=report_id).first()
+    r.user_has_unread = True if u.role == Role.ORGANIZATION else r.user_has_unread
+    r.org_has_unread = True if u.role == Role.RESEARCHER else r.org_has_unread
+
+    try:
+        db_client.session.add(c)
+        db_client.session.commit()
+    except:
+        return jsonify({"error": "Error adding comment"}), 400
+    return jsonify({"message": "Comment added"}), 200
