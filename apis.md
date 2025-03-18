@@ -307,6 +307,31 @@ Response
 200 - {"message": "Request created"}
 ```
 
+### POST /api/requests/update-request
+
+Request
+
+```ts
+cookie: session_id
+
+Request {
+    "title": string
+    "summary": string
+    "description": string
+    "disclosure_policy_url": string
+    "tags": string[]
+	"request_id": int
+}
+```
+
+Response
+
+```ts
+404 - {"error": "Error finding report or invalid credentials"}
+400 - {"error": "Error updating request"}
+200 - {"message": "Request updated"}
+```
+
 ### POST /api/requests/submit-for-approval
 
 Request
@@ -348,8 +373,6 @@ Response
 404 - {"error": "Error finding request or invalid credentials"}
 200 - {"message": "Request archived"}
 ```
-
-### comment_on_report
 
 ### POST /api/reports/accept-report
 
@@ -414,8 +437,6 @@ Response
 400 - {"error": "Error creating reqport"}
 200 - {"message": "Report created"}
 ```
-
-### comment_on_report
 
 ## Shared
 
@@ -541,4 +562,25 @@ Response
 	"logo": string
 	"user": string
 }
+```
+
+### POST /api/reports/comment
+
+Request
+
+```ts
+cookie: session_id
+
+Request {
+    "report_id": int
+	"content": string
+}
+```
+
+Response
+
+```ts
+400 - {"error": "Error adding comment"}
+404 - {"error": "Error finding report or invalid credentials"}
+200 - {"message": "Comment added"}
 ```
