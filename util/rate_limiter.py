@@ -4,8 +4,6 @@ from flask_limiter.util import get_remote_address
 from redis_lib.client import url as redis_url
 
 def get_key():
-    # TODO: a malicious user could can keep on refreshing their session ID to bypass rate limiting
-    # shall we disallow session ID refreshes until they expire? but what if they clear their cookies?
     session_id = request.cookies.get("session_id")
     if session_id:
         return session_id

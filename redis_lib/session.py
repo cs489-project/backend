@@ -6,6 +6,7 @@ import time
 IDLE_TIMEOUT = 30 * 60  # 30 minutes
 ABSOLUTE_TIMEOUT = 8 * 60 * 60  # 8 hours
 SHORT_TIMEOUT = 5 * 60 * 60  # 5 minutes, time to wait for MFA code
+MIN_REFRESH_INTERVAL = 30  # 30 seconds
 
 class SessionAuthStage(Enum):
    PASSWORD = 0
@@ -17,6 +18,9 @@ def generate_session_id(length=32) -> str:
 def get_session_key(session_id: str) -> str:
     return f"session:{session_id}"
 
+class TooManyRequestsError(Exception):
+    pass
+
 def set_session_pending_mfa(user_id: int):
     """
     Set the session auth stage to pending MFA
@@ -26,6 +30,10 @@ def set_session_pending_mfa(user_id: int):
     session_id = redis_client.get(f"user:{user_id}:session")
     if session_id:
         session_id = session_id.decode('utf-8')
+        key = get_session_key(session_id)
+        session = get_and_decode(key)
+        if session and float(session["created_at"]) + MIN_REFRESH_INTERVAL > time.time():
+            raise TooManyRequestsError("Please wait before refreshing your session")
         print("Existing session", session_id)
         delete_session(session_id)
 

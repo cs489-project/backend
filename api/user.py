@@ -30,7 +30,10 @@ def login_password():
     if not verify_password(user.password, password, user.salt):
         return jsonify(login_error), login_error_code
     
-    session_id = session.set_session_pending_mfa(user.id)
+    try:
+        session_id = session.set_session_pending_mfa(user.id)
+    except:
+        return jsonify({"error": "Try again later"}), 429
     response = jsonify({"message": "Logged in"})
     response.set_cookie('session_id', session_id, httponly=True, secure=True)
     return response, 200
@@ -80,7 +83,10 @@ def register():
     except:
         return jsonify({"error": "Error registering"}), 400
     
-    session_id = session.set_session_pending_mfa(user.id)
+    try:
+        session_id = session.set_session_pending_mfa(user.id)
+    except:
+        return jsonify({"error": "Try again later"}), 429
     response = jsonify({"message": "Registered"})
     response.set_cookie('session_id', session_id, httponly=True, secure=True)
     return response, 200
@@ -106,7 +112,10 @@ def register_org():
     except:
         return jsonify({"error": "Error registering"}), 400
     
-    session_id = session.set_session_pending_mfa(user.id)
+    try:
+        session_id = session.set_session_pending_mfa(user.id)
+    except:
+        return jsonify({"error": "Try again later"}), 429
     response = jsonify({"message": "Registered"})
     response.set_cookie('session_id', session_id, httponly=True, secure=True)
     return response, 200
