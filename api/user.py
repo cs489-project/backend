@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from db.models import AuthStage, User, Role
 from db.client import db_client
 from middleware.auth import SessionAuthStage, check_auth_stage, authenticate, check_roles
+from middleware.logger import ignore_fields_for_logging
 from util.auth import generate_salt, generate_totp_secret, get_totp_auth_uri, hash_password, verify_password, verify_totp
 from json import dumps
 import redis_lib.session as session
@@ -12,6 +13,7 @@ login_error = {"error": "Error logging in"}
 login_error_code = 401
 
 @users_bp.route('/login-password', methods=['POST'])
+@ignore_fields_for_logging(["password"])
 def login_password():
     data = request.json
     email: str = data.get('email')
@@ -34,6 +36,7 @@ def login_password():
     return response, 200
 
 
+@ignore_fields_for_logging(["code"])
 @users_bp.route('/login-mfa', methods=['POST'])
 @authenticate()
 @check_auth_stage(auth_stage=AuthStage.PENDING_MFA, session_auth_stage=SessionAuthStage.PASSWORD)
@@ -56,6 +59,7 @@ def login_mfa():
     session.set_session_mfa_verified(session_id)
     return jsonify({"message": "Logged in"}), 200
 
+@ignore_fields_for_logging(["password"])
 @users_bp.route('/register', methods=['POST'])
 def register():
     data = request.json
@@ -81,6 +85,7 @@ def register():
     response.set_cookie('session_id', session_id, httponly=True, secure=True)
     return response, 200
 
+@ignore_fields_for_logging(["password"])
 @users_bp.route('/register-org', methods=['POST'])
 def register_org():
     data = request.json
