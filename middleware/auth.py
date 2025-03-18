@@ -18,7 +18,7 @@ def min_session_auth_stage(session_auth_stage: SessionAuthStage, minimum_session
     return stages.index(session_auth_stage) >= stages.index(minimum_session_auth_stage)
 
 def authenticate():
-   """
+    """
     Authenticate the user based on the session ID in the request cookie.
     Attaches the user and session to the request object.
     ```
@@ -26,44 +26,44 @@ def authenticate():
     request.session: dict
     request.session_id: str
     ```
-   """
-   def decorator(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        session_id = request.cookies.get("session_id")
-        if not session_id:
-            return jsonify(invalid_session), 400
-        
-        # Check if session ID exists in Redis
-        session = fetch_session(session_id)
-        if session is None:
-            return jsonify(invalid_session), 400
-        
+    """
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            session_id = request.cookies.get("session_id")
+            if not session_id:
+                return jsonify(invalid_session), 400
+            
+            # Check if session ID exists in Redis
+            session = fetch_session(session_id)
+            if session is None:
+                return jsonify(invalid_session), 400
+            
 
-        user = db_client.session.query(User).filter_by(id=session["user_id"]).first()
-        if user is None:
-            print("No user found for session", session)
-            return jsonify(invalid_session), 400
-        
-        request.user = user
-        request.session = session
-        request.session_id = session_id
-        return func(*args, **kwargs)
-    return wrapper
-   return decorator
+            user = db_client.session.query(User).filter_by(id=session["user_id"]).first()
+            if user is None:
+                print("No user found for session", session)
+                return jsonify(invalid_session), 400
+            
+            request.user = user
+            request.session = session
+            request.session_id = session_id
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
 
 def check_auth_stage(
         auth_stage: AuthStage = AuthStage.MFA_VERIFIED,  # minimum auth stage required
         session_auth_stage: SessionAuthStage = SessionAuthStage.MFA # minimum session auth stage required
     ):
-   """
+    """
     `AuthStage` is the auth stage that exists for the user in the database (ie. has the user ever verified their 2FA).
 
     `SessionAuthStage` is the auth stage that exists for the user for this current session (ie. did they verify 2FA this session).
-   """
-   def decorator(func):
-       @wraps(func)
-       def wrapper(*args, **kwargs):
+    """
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
             user = request.user
             session = request.session
 
@@ -74,29 +74,29 @@ def check_auth_stage(
             if not min_auth_stage(user.auth_stage, auth_stage):
                 return jsonify(invalid_permission), 401
             return func(*args, **kwargs)
-      
-       return wrapper
-  
-   return decorator
+
+        return wrapper
+
+    return decorator
 
 
 def check_roles(roles: list[Role]):
-   """
-   `roles` is a list of roles that are allowed to access the route.
-   """
-   def decorator(func):
-       @wraps(func)
-       def wrapper(*args, **kwargs):
-           user = request.user
-           if not user:
+    """
+    `roles` is a list of roles that are allowed to access the route.
+    """
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            user = request.user
+            if not user:
                 print("No user when checking roles for request", request)
                 # internal server error
                 return jsonify({"message": "Unauthorized"}), 500
-           if user.role not in roles:
+            if user.role not in roles:
                 return jsonify({"message": "Unauthorized"}), 403
-          
-           return func(*args, **kwargs)
-      
-       return wrapper
-  
-   return decorator
+
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator

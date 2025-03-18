@@ -9,8 +9,8 @@ SHORT_TIMEOUT = 5 * 60 * 60  # 5 minutes, time to wait for MFA code
 # TODO: Reduce the SHORT_TIMEOUT value back to 5 minutes instead of 5 hours
 
 class SessionAuthStage(Enum):
-   PASSWORD = 0
-   MFA = 1
+    PASSWORD = 0
+    MFA = 1
 
 def generate_session_id(length=32) -> str:
     return secrets.token_urlsafe(length)
