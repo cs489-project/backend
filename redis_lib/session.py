@@ -5,7 +5,7 @@ import time
 
 IDLE_TIMEOUT = 30 * 60  # 30 minutes
 ABSOLUTE_TIMEOUT = 8 * 60 * 60  # 8 hours
-SHORT_TIMEOUT = 5 * 60  # 5 minutes, time to wait for MFA code
+SHORT_TIMEOUT = 5 * 60 * 60  # 5 minutes, time to wait for MFA code
 
 class SessionAuthStage(Enum):
    PASSWORD = 0

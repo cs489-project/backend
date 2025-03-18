@@ -24,12 +24,17 @@ class Role(Enum):
     RESEARCHER = 'researcher'
     ORGANIZATION = 'organization'
 
-class RequestState(Enum):
+class JobRequestState(Enum):
     CREATED = 'created' # created, but not submitted for approval
     SUBMITTED = 'submitted'
     REJECTED = 'rejected'
     APPROVED = 'approved'
     ARCHIVED = 'archived' # "deleted" but visible for creater
+
+class ReportState(Enum):
+    SUBMITTED = 'submitted'
+    REJECTED = 'rejected'
+    ACCEPTED = 'accepted'
 
 class User(BaseModel):
     __tablename__ = 'users'
@@ -41,6 +46,7 @@ class User(BaseModel):
     totp_secret: Mapped[Optional[str]] = mapped_column()
     auth_stage: Mapped[AuthStage] = mapped_column(default=AuthStage.PASSWORD)
     role: Mapped[Role] = mapped_column()
+    md: Mapped[str] = mapped_column() # json object
 
     # relationships
     reports: Mapped[List["Report"]] = relationship('Report', back_populates='user')
@@ -52,6 +58,10 @@ class User(BaseModel):
 class Report(BaseModel):
     __tablename__ = 'reports'
     
+    content: Mapped[str] = mapped_column()
+    user_has_unread: Mapped[bool] = mapped_column()
+    org_has_unread: Mapped[bool] = mapped_column()
+    status: Mapped[ReportState] = mapped_column()
 
     # relationships
     comments: Mapped[List["Comment"]] = relationship('Comment', back_populates='report')
@@ -65,7 +75,7 @@ class Report(BaseModel):
 class Comment(BaseModel):
     __tablename__ = 'comments'
 
-    # other fields
+    content: Mapped[str] = mapped_column()
 
     # relationships
     user_id: Mapped[int] = mapped_column(db_client.ForeignKey('users.id'))
@@ -78,8 +88,11 @@ class JobRequest(BaseModel):
     __tablename__ = 'job_requests'
 
     title: Mapped[str] = mapped_column()
+    summary: Mapped[str] = mapped_column()
     description: Mapped[str] = mapped_column()
-    state: Mapped[RequestState] = mapped_column(default=RequestState.CREATED)
+    state: Mapped[JobRequestState] = mapped_column(default=JobRequestState.CREATED)
+    disclosure_policy_url: Mapped[str] = mapped_column()
+    tags: Mapped[str] = mapped_column() # list
 
     # relationships
     report: Mapped["Report"] = relationship('Report', back_populates='job_request')

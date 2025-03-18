@@ -3,7 +3,7 @@ from db.models import AuthStage, User, Role
 from db.client import db_client
 from middleware.auth import SessionAuthStage, check_auth_stage, authenticate, check_roles
 from util.auth import generate_salt, generate_totp_secret, get_totp_auth_uri, hash_password, verify_password, verify_totp
-
+from json import dumps
 import redis_lib.session as session
 
 users_bp = Blueprint('users', __name__)
@@ -68,7 +68,7 @@ def register():
     salt = generate_salt()
     print('generated', password, salt)
     hashed_password = hash_password(password, salt)
-    user = User(name=name, email=email, password=hashed_password, salt=salt, role=Role.RESEARCHER)
+    user = User(name=name, email=email, password=hashed_password, salt=salt, role=Role.RESEARCHER, md='{}')
 
     try:
         db_client.session.add(user)
@@ -87,12 +87,13 @@ def register_org():
     name: str = data.get('name')
     email: str = data.get('email')
     password: str = data.get('password')
+    logo_url: str = data.get('logo_url')
     if (len(password) < 10):
         return jsonify({"error": "Password must be at least 10 characters"}), 400
 
     salt = generate_salt()
     hashed_password = hash_password(password, salt)
-    user = User(name=name, email=email, password=hashed_password, salt=salt, role=Role.ORGANIZATION)
+    user = User(name=name, email=email, password=hashed_password, salt=salt, role=Role.ORGANIZATION, md=dumps({'approved': False, 'logo_url': logo_url}))
 
     try:
         db_client.session.add(user)

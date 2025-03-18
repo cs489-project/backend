@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from db.models import AuthStage, User, Role
+from db.models import AuthStage, User, Role, JobRequest, JobRequestState
 from db.client import db_client
 from middleware.auth import SessionAuthStage, check_auth_stage, authenticate, check_roles
 
@@ -55,3 +55,68 @@ def user():
         "id": user.id,
         "auth_stage": user.auth_stage.value
     }), 200
+
+@admin_bp.route('/approve-request', methods=['POST'])
+@authenticate()
+@check_auth_stage()
+@check_roles([Role.ADMIN])
+def approve_request():
+    data = request.json
+    request_id: str = data.get('request_id')
+
+    r = db_client.session.query(JobRequest).filter_by(id=request_id).first()
+    if not r:
+        return jsonify({"error": "Error finding report"}), 404
+    
+    if r.state != JobRequestState.SUBMITTED:
+        return jsonify({"error": "Error report in invalid state"}), 400
+
+    r.state = JobRequestState.APPROVED
+    
+    try:
+        db_client.session.commit()
+    except:
+        return jsonify({"error": "Error approving request"}), 400
+    return jsonify({"message": "Request approved"}), 200
+
+@admin_bp.route('/reject-request', methods=['POST'])
+@authenticate()
+@check_auth_stage()
+@check_roles([Role.ADMIN])
+def reject_request():
+    data = request.json
+    request_id: str = data.get('request_id')
+
+    r = db_client.session.query(JobRequest).filter_by(id=request_id).first()
+    if not r:
+        return jsonify({"error": "Error finding report"}), 404
+    
+    if r.state != JobRequestState.SUBMITTED:
+        return jsonify({"error": "Error report in invalid state"}), 400
+
+    r.state = JobRequestState.REJECTED
+    
+    try:
+        db_client.session.commit()
+    except:
+        return jsonify({"error": "Error rejecting request"}), 400
+    return jsonify({"message": "Request rejected"}), 200
+
+@admin_bp.route('/delete-request', methods=['POST'])
+@authenticate()
+@check_auth_stage()
+@check_roles([Role.ADMIN])
+def delete_request():
+    data = request.json
+    request_id: str = data.get('request_id')
+
+    r = db_client.session.query(JobRequest).filter_by(id=request_id).first()
+    if not r:
+        return jsonify({"error": "Error finding report"}), 404
+    
+    try:
+        db_client.session.delete(r)
+        db_client.session.commit()
+    except:
+        return jsonify({"error": "Error deleting request"}), 400
+    return jsonify({"message": "Request deleted"}), 200
