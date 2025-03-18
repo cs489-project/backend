@@ -352,8 +352,6 @@ Response
 200 - {"message": "Request submitted for approval"}
 ```
 
-### edit_job_request
-
 ### POST /api/requests/archive
 
 Request
