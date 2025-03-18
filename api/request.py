@@ -122,7 +122,7 @@ def get_all():
         requests = db_client.session.query(JobRequest).filter_by(state=JobRequestState.APPROVED).all()
         r = [{
                 'id': _.id,
-                'state': _.state,
+                'state': _.state.value,
                 'title': _.title,
                 'company': _.organization.name,
                 'datePosted': _.updated_at,
@@ -138,7 +138,7 @@ def get_all():
         requests = db_client.session.query(JobRequest).filter_by(organization_id=u.id).all()
         r = [{
                 'id': _.id,
-                'state': _.state,
+                'state': _.state.value,
                 'title': _.title,
                 'company': _.organization.name,
                 'datePosted': _.updated_at,
@@ -154,7 +154,7 @@ def get_all():
         requests = db_client.session.query(JobRequest).all()
         r = [{
                 'id': _.id,
-                'state': _.state,
+                'state': _.state.value,
                 'title': _.title,
                 'company': _.organization.name,
                 'datePosted': _.updated_at,
