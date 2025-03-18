@@ -1,3 +1,5 @@
 from redis import Redis
 
-redis_client: Redis = Redis(host='redis', port=6379, db=0)
+url = "redis://redis:6379/0"
+redis_client: Redis = Redis.from_url(url)
+

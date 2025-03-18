@@ -5,3 +5,4 @@ redis
 minio
 argon2
 pyotp
+Flask-Limiter 

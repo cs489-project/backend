@@ -5,8 +5,8 @@ import os
 from api import users_bp, admin_bp, requests_bp, reports_bp
 from db.client import db_client, init_db
 from middleware.logger import init_logger
-from redis_lib import redis_client
 import seed.seed_db as seed_db
+from util.rate_limiter import init_rate_limiting
 
 def init_minio():
     # TODO: refactor into own file
@@ -54,19 +54,15 @@ def create_app():
     app.register_blueprint(requests_bp, url_prefix='/api/requests')
     app.register_blueprint(reports_bp, url_prefix='/api/reports')
 
-    # init logger
+    # init stuff
     init_logger(app)
-
-
-    # init db and seed data
+    init_rate_limiting(app)
     init_db(app)
     with app.app_context():
         db_client.create_all()
         seed_db.seed_all(db_client.session)
 
     return app
-    
-    
     
 app = create_app()
 # minio_client = init_minio()
