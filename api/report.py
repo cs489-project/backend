@@ -82,7 +82,7 @@ def get_all():
                 'id': _.id,
                 'unread': _.user_has_unread,
                 'status': _.status.value,
-                'comment_count': len(db_client.session.query(Comment).filter_by(report_id=_.id).all()),
+                'commentCount': len(db_client.session.query(Comment).filter_by(report_id=_.id).all()),
                 'organization': _.job_request.organization.name,
                 'logo': loads(_.job_request.organization.md)['logo_url'],
                 'user': _.user.name
@@ -96,7 +96,7 @@ def get_all():
                 'id': _.id,
                 'unread': _.org_has_unread,
                 'status': _.status.value,
-                'comment_count': len(db_client.session.query(Comment).filter_by(report_id=_.id).all()),
+                'commentCount': len(db_client.session.query(Comment).filter_by(report_id=_.id).all()),
                 'organization': _.job_request.organization.name,
                 'logo': loads(_.job_request.organization.md)['logo_url'],
                 'user': _.user.name
@@ -123,14 +123,14 @@ def get_by_id():
                 'id': _.id,
                 'unread': _.user_has_unread,
                 'status': _.status.value,
-                'comment_count': len(db_client.session.query(Comment).filter_by(report_id=_.id).all()),
+                'commentCount': len(db_client.session.query(Comment).filter_by(report_id=_.id).all()),
                 'comments': [{'message': c.content, 'senderName': c.user.name, 'timestamp': c.created_at} for c in db_client.session.query(Comment).filter_by(report_id=_.id).all()],
                 'organization': _.job_request.organization.name,
                 'logo': loads(_.job_request.organization.md)['logo_url'],
                 'user': _.user.name
             } for _ in [r]][0]
     
-        return jsonify({"message": "Reports returned", "reports": r}), 200
+        return jsonify({"message": "Report returned", "report": r}), 200
     elif u.role == Role.ORGANIZATION:
         r = db_client.session.query(Report).filter_by(id=report_id).first()
 
@@ -141,11 +141,11 @@ def get_by_id():
                 'id': _.id,
                 'unread': _.org_has_unread,
                 'status': _.status.value,
-                'comment_count': len(db_client.session.query(Comment).filter_by(report_id=_.id).all()),
+                'commentCount': len(db_client.session.query(Comment).filter_by(report_id=_.id).all()),
                 'comments': [{'message': c.content, 'senderName': c.user.name, 'timestamp': c.created_at} for c in db_client.session.query(Comment).filter_by(report_id=_.id).all()],
                 'organization': _.job_request.organization.name,
                 'logo': loads(_.job_request.organization.md)['logo_url'],
                 'user': _.user.name
             } for _ in [r]][0]
     
-        return jsonify({"message": "Reports returned", "reports": r}), 200
+        return jsonify({"message": "Report returned", "report": r}), 200

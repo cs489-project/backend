@@ -68,7 +68,7 @@ def archive():
 
     r = db_client.session.query(JobRequest).filter_by(id=request_id).first()
     if not r or r.organization != org:
-        return jsonify({"error": "Error finding report or invalid credentials"}), 404
+        return jsonify({"error": "Error finding request or invalid credentials"}), 404
     
     r.state = JobRequestState.ARCHIVED
     
@@ -90,6 +90,7 @@ def get_all():
         requests = db_client.session.query(JobRequest).filter_by(state=JobRequestState.APPROVED).all()
         r = [{
                 'id': _.id,
+                'state': _.state,
                 'title': _.title,
                 'company': _.organization.name,
                 'datePosted': _.updated_at,
@@ -105,6 +106,7 @@ def get_all():
         requests = db_client.session.query(JobRequest).filter_by(organization_id=u.id).all()
         r = [{
                 'id': _.id,
+                'state': _.state,
                 'title': _.title,
                 'company': _.organization.name,
                 'datePosted': _.updated_at,
@@ -120,6 +122,7 @@ def get_all():
         requests = db_client.session.query(JobRequest).all()
         r = [{
                 'id': _.id,
+                'state': _.state,
                 'title': _.title,
                 'company': _.organization.name,
                 'datePosted': _.updated_at,
@@ -140,12 +143,14 @@ def get_by_id():
     request_id: str = data.get('request_id')
     
     r = db_client.session.query(JobRequest).filter_by(id=request_id).first()
+    # TODO: make sure that a user can't get archived requests
 
     if not r:
         return jsonify({"message": "Request not found"}), 404
 
     r = [{
             'id': _.id,
+            'state': _.state,
             'title': _.title,
             'company': _.organization.name,
             'datePosted': _.updated_at,

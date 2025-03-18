@@ -226,54 +226,325 @@ Response
 
 ## Job request management
 
-### delete_job_request
+### POST /api/admin/approve-request
 
-### approve_job_request
+Restricted to `Admin`
 
-### reject_job_request
+Request
+
+```ts
+Request {
+    "request_id": int
+}
+```
+
+Response
+
+```ts
+400 - {"error": "Error approving request"}
+404 - {"error": "Error finding report"} or {"error": "Error report in invalid state"}
+200 - {"message": "Request approved"}
+```
+
+### POST /api/admin/reject-request
+
+Restricted to `Admin`
+
+Request
+
+```ts
+Request {
+    "request_id": int
+}
+```
+
+Response
+
+```ts
+400 - {"error": "Error rejecting request"}
+404 - {"error": "Error finding report"} or {"error": "Error report in invalid state"}
+200 - {"message": "Request rejected"}
+```
+
+### POST /api/admin/delete-request
+
+Restricted to `Admin`
+
+Request
+
+```ts
+Request {
+    "request_id": int
+}
+```
+
+Response
+
+```ts
+400 - {"error": "Error deleting request"}
+404 - {"error": "Error finding report"}
+200 - {"message": "Request deleted"}
+```
 
 # Pentest Request
 
 ## Organization
 
-`job_request` is organization pentest request
+### POST /api/requests/create-request
 
-### submit_job_request
+Request
+
+```ts
+cookie: session_id
+
+Request {
+    "title": string
+    "summary": string
+    "description": string
+    "disclosure_policy_url": string
+    "tags": string[]
+}
+```
+
+Response
+
+```ts
+400 - {"error": "Error creating request"}
+200 - {"message": "Request created"}
+```
+
+### POST /api/requests/submit-for-approval
+
+Request
+
+```ts
+cookie: session_id
+
+Request {
+    "request_id": int
+}
+```
+
+Response
+
+```ts
+400 - {"error": "Error submitting request for approval"} or {"error": "Error report in invalid state"}
+404 - {"error": "Error finding report or invalid credentials"}
+200 - {"message": "Request submitted for approval"}
+```
 
 ### edit_job_request
 
-### delete_job_request
+### POST /api/requests/archive
+
+Request
+
+```ts
+cookie: session_id
+
+Request {
+    "request_id": int
+}
+```
+
+Response
+
+```ts
+400 - {"error": "Error archiving request"}
+404 - {"error": "Error finding request or invalid credentials"}
+200 - {"message": "Request archived"}
+```
 
 ### comment_on_report
 
-### accept_report
+### POST /api/reports/accept-report
 
-### reject_report
+Request
 
-### get_reports
+```ts
+cookie: session_id
 
-job_request opt
+Request {
+    "report_id": int
+}
+```
 
-### get_requests
+Response
 
-3 way flag
+```ts
+400 - {"error": "Error accepting report"}
+404 - {"error": "Error finding report or invalid credentials"}
+200 - {"message": "Request accepted"}
+```
 
-- only rejected
-- only approved
-- both
+### POST /api/reports/reject-report
+
+Request
+
+```ts
+cookie: session_id
+
+Request {
+    "report_id": int
+}
+```
+
+Response
+
+```ts
+400 - {"error": "Error rejecting report"}
+404 - {"error": "Error finding report or invalid credentials"}
+200 - {"message": "Request rejected"}
+```
 
 ## User
 
 ### get_orgs
 
-### get_requests
+### POST /api/reports/create-report
 
-org_id (opt)
+Request
 
-sort feature for most recent
+```ts
+cookie: session_id
 
-### create_report
+Request {
+    "content": string
+	"request_id": int
+}
+```
+
+Response
+
+```ts
+400 - {"error": "Error creating reqport"}
+200 - {"message": "Report created"}
+```
 
 ### comment_on_report
 
-### get_reports
+## Shared
+
+### GET /api/requests/get-all
+
+Depending on user role:
+- `Researcher` - returns all approved requests
+- `Organization` - returns all requests by the org
+- `Admin` - returns all requests
+
+Request
+
+```ts
+cookie: session_id
+```
+
+Response
+
+```ts
+{
+	"id": int
+	"state": "created" | "submitted" | "rejected" | "approved" | "archived"
+	"title": string
+	"company": string
+	"datePoasted": Date
+	"previewDescription": string
+	"detailedDescription": string
+	"logo": string
+	"tags": string[]
+	"responsibleDisclosureUrl": string
+}[]
+```
+
+### GET /api/requests/get-by-id
+
+Depending on user role:
+- `Researcher` - returns request if approved
+- `Organization/Admin` - returns request
+
+Request
+
+```ts
+cookie: session_id
+
+Request {
+    "request_id": int
+}
+```
+
+Response
+
+```ts
+{
+	"id": int
+	"state": "created" | "submitted" | "rejected" | "approved" | "archived"
+	"title": string
+	"company": string
+	"datePoasted": Date
+	"previewDescription": string
+	"detailedDescription": string
+	"logo": string
+	"tags": string[]
+	"responsibleDisclosureUrl": string
+}
+```
+
+### GET /api/reports/get-all
+
+Depending on user role:
+- `Researcher` - returns reports if they created them
+- `Organization` - returns reports if they own the request
+
+`unread` is set to the requesting users unread status
+
+Request
+
+```ts
+cookie: session_id
+```
+
+Response
+
+```ts
+{
+	"id": int
+	"unread": bool
+	"status": "submitted" | "rejected" | "accepted"
+	"commentCount": int
+	"organization": string
+	"logo": string
+	"user": string
+}[]
+```
+
+### GET /api/reports/get-by-id
+
+Depending on user role:
+- `Researcher` - returns report if they created it
+- `Organization` - returns report if they own the request
+
+`unread` is set to the requesting users unread status
+
+Request
+
+```ts
+cookie: session_id
+```
+
+Response
+
+```ts
+{
+	"id": int
+	"unread": bool
+	"status": "submitted" | "rejected" | "accepted"
+	"commentCount": int
+	"comments": [{
+		"message": string
+		"senderName": string
+		"timestamp": Date
+	}]
+	"organization": string
+	"logo": string
+	"user": string
+}
+```
