@@ -31,6 +31,38 @@ def create_request():
         return jsonify({"error": "Error creating request"}), 400
     return jsonify({"message": "Request created"}), 200
 
+@requests_bp.route('/update-request', methods=['POST'])
+@authenticate()
+# @check_auth_stage()
+@check_roles([Role.ORGANIZATION])
+def update_request():
+    org: User = request.user
+    data = request.json
+    title: str = data.get('title')
+    summary: str = data.get('summary')
+    description: str = data.get('description')
+    disclosure_policy_url: str = data.get('disclosure_policy_url')
+    tags = data.get('tags')
+    request_id = data.get('request_id')
+
+    r = db_client.session.query(JobRequest).filter_by(id=request_id).first()
+
+    if r.organization_id != org.id:
+        return jsonify({"error": "Error finding report or invalid credentials"}), 404
+
+    r.title = title
+    r.summary = summary
+    r.description = description
+    r.disclosure_policy_url = disclosure_policy_url
+    r.tags = dumps(tags)
+    r.state = JobRequestState.CREATED
+
+    try:
+        db_client.session.commit()
+    except:
+        return jsonify({"error": "Error updating request"}), 400
+    return jsonify({"message": "Request updated"}), 200
+
 @requests_bp.route('/submit-for-approval', methods=['POST'])
 @authenticate()
 # @check_auth_stage()
