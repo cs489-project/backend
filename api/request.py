@@ -139,13 +139,13 @@ def get_all():
 @authenticate()
 # @check_auth_stage()
 def get_by_id():
+    u: User = request.user
     data = request.json
     request_id: str = data.get('request_id')
     
     r = db_client.session.query(JobRequest).filter_by(id=request_id).first()
-    # TODO: make sure that a user can't get archived requests
 
-    if not r:
+    if not r or (u.role == Role.RESEARCHER and r.state != JobRequestState.APPROVED):
         return jsonify({"message": "Request not found"}), 404
 
     r = [{
