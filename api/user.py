@@ -36,8 +36,8 @@ def login_password():
     return response, 200
 
 
-@ignore_fields_for_logging(["code"])
 @users_bp.route('/login-mfa', methods=['POST'])
+@ignore_fields_for_logging(["code"])
 @authenticate()
 @check_auth_stage(auth_stage=AuthStage.PENDING_MFA, session_auth_stage=SessionAuthStage.PASSWORD)
 def login_mfa():
@@ -59,8 +59,8 @@ def login_mfa():
     session.set_session_mfa_verified(session_id)
     return jsonify({"message": "Logged in"}), 200
 
-@ignore_fields_for_logging(["password"])
 @users_bp.route('/register', methods=['POST'])
+@ignore_fields_for_logging(["password"])
 def register():
     data = request.json
     name: str = data.get('name')
@@ -85,8 +85,8 @@ def register():
     response.set_cookie('session_id', session_id, httponly=True, secure=True)
     return response, 200
 
-@ignore_fields_for_logging(["password"])
 @users_bp.route('/register-org', methods=['POST'])
+@ignore_fields_for_logging(["password"])
 def register_org():
     data = request.json
     name: str = data.get('name')
