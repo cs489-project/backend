@@ -6,3 +6,4 @@ minio
 argon2
 pyotp
 Flask-Limiter 
+pytest

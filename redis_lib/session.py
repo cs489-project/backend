@@ -90,3 +90,6 @@ def delete_session(session_id: str):
     key = get_session_key(session_id)
     print("Deleting session", key)
     redis_client.delete(key)
+
+def clear():
+    redis_client.flushall()

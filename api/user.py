@@ -5,6 +5,7 @@ from middleware.auth import SessionAuthStage, check_auth_stage, authenticate, ch
 from middleware.logger import ignore_fields_for_logging
 from util.auth import generate_salt, generate_totp_secret, get_totp_auth_uri, hash_password, verify_password, verify_totp
 from json import dumps
+import re
 import redis_lib.session as session
 
 users_bp = Blueprint('users', __name__)
@@ -71,6 +72,12 @@ def register():
     password: str = data.get('password')
     if (len(password) < 10 or len(password) > 64):
         return jsonify({"error": "Password must be between 10 to 64 characters"}), 400
+    if not re.compile(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').match(email):
+        return jsonify({"error": "Invalid email format"}), 400
+    if not name:
+        return jsonify({"error": "Name cannot be empty"}), 400
+    if db_client.session.query(User).filter_by(email=email).first():
+        return jsonify({"error": "User already exists"}), 400
 
     salt = generate_salt()
     print('generated', password, salt)

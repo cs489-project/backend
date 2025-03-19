@@ -20,6 +20,9 @@ limiter: Limiter = Limiter(
 )
 
 def init_rate_limiting(app):
+    if app.config.get("TESTING"):
+        limiter.enabled = False
+        return
     app.config['RATELIMIT_HEADERS_ENABLED'] = False
 
     # disable default rate limiter error message (which includes the limit details)
