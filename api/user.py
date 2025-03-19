@@ -108,6 +108,14 @@ def register_org():
     logo_url: str = data.get('logo_url')
     if (len(password) < 10 or len(password) > 64):
         return jsonify({"error": "Password must be between 10 to 64 characters"}), 400
+    if not re.compile(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').match(email):
+        return jsonify({"error": "Invalid email format"}), 400
+    if not name:
+        return jsonify({"error": "Name cannot be empty"}), 400
+    if db_client.session.query(User).filter_by(email=email).first():
+        return jsonify({"error": "User already exists"}), 400
+    if not logo_url:
+        return jsonify({"error": "Logo URL cannot be empty"}), 400
 
     salt = generate_salt()
     hashed_password = hash_password(password, salt)

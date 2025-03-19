@@ -6,7 +6,10 @@ import pytest
 
 from app import create_app
 from db.client import db_client
+from db.models import User
 import redis_lib.session as session
+
+import consts
 
 @pytest.fixture(scope='session')
 def app():
@@ -16,6 +19,12 @@ def app():
     with app.app_context():
         db_client.drop_all()
         db_client.create_all()
+
+        # Seed test data
+        db_client.session.add(User(**consts.RESEARCHER))
+        db_client.session.add(User(**consts.ORGANIZATION))
+        db_client.session.add(User(**consts.ADMIN))
+        db_client.session.commit()
 
     yield app
 
