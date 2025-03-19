@@ -172,8 +172,9 @@ def get_all():
 # @check_auth_stage()
 def get_by_id():
     u: User = request.user
-    data = request.json
-    request_id: str = data.get('request_id')
+    request_id: str = request.args.get('request_id')
+    if not request_id:
+        return jsonify({"message": "request_id query param is required"}), 400 
     
     r = db_client.session.query(JobRequest).filter_by(id=request_id).first()
 
@@ -182,7 +183,7 @@ def get_by_id():
 
     r = [{
             'id': _.id,
-            'state': _.state,
+            'state': _.state.value,
             'title': _.title,
             'company': _.organization.name,
             'datePosted': _.updated_at,
