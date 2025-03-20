@@ -6,7 +6,6 @@ from json import dumps, loads
 
 admin_bp = Blueprint('admin', __name__)
 
-# TODO: test these endpoints
 
 @admin_bp.route('/delete-user', methods=['POST'])
 @authenticate()
