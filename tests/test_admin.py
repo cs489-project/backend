@@ -29,8 +29,11 @@ def add_test_user(client, role=Role.RESEARCHER):
         'auth_stage': AuthStage.MFA_VERIFIED
     }
     with client.application.app_context():
-        db_client.session.add(User(**user_info))
-        db_client.session.commit()
+        try:
+            db_client.session.add(User(**user_info))
+            db_client.session.commit()
+        except:
+            pass
     return user_info
 
 def delete_test_user(client):
@@ -47,6 +50,22 @@ def get_admin_with_mfa(client):
     session_id = session.set_session_pending_mfa(admin.id)
     session.set_session_mfa_verified(session_id)
     return admin, session_id
+
+def get_researcher_with_mfa(client):
+    with client.application.app_context():
+        researcher = User.query.filter_by(email=RESEARCHER['email']).first()
+    # redis
+    session_id = session.set_session_pending_mfa(researcher.id)
+    session.set_session_mfa_verified(session_id)
+    return researcher, session_id
+
+def get_organization_with_mfa(client):
+    with client.application.app_context():
+        organization = User.query.filter_by(email=ORGANIZATION['email']).first()
+    # redis
+    session_id = session.set_session_pending_mfa(organization.id)
+    session.set_session_mfa_verified(session_id)
+    return organization, session_id
 
 # register a user, login as admin, delete the user
 def test_delete_user_success(client):
@@ -67,6 +86,24 @@ def test_delete_user_success(client):
         to_delete = User.query.filter_by(email=user_info["email"]).first()
         assert to_delete is None
 
+# non admin shouldn't be able to delete a user
+def test_delete_no_perms(client):
+    user_info = add_test_user(client)
+    for session_id in [get_organization_with_mfa(client)[1], get_researcher_with_mfa(client)[1]]:
+
+        with client.application.app_context():
+            to_delete = User.query.filter_by(email=user_info["email"]).first()
+            assert to_delete is not None
+            client.set_cookie('session_id', session_id)
+            response = client.post('/api/admin/delete-user', json={
+                "user_id": to_delete.id
+            })
+            to_delete = User.query.filter_by(email=user_info["email"]).first()
+            assert to_delete is not None
+        assert response.status_code == 403
+        assert response.json['message'] == 'Unauthorized'
+
+    delete_test_user(client)
 
 def test_researchers(client):
     user_info = add_test_user(client)
@@ -86,6 +123,16 @@ def test_researchers(client):
 
     delete_test_user(client)
 
+# non admins shouldn't be able to access the researchers endpoint
+def test_researchers_no_perms(client):
+    for session_id in [get_organization_with_mfa(client)[1], get_researcher_with_mfa(client)[1]]:
+        with client.application.app_context():
+            client.set_cookie('session_id', session_id)
+            response = client.get('/api/admin/researchers')
+        assert response.status_code == 403
+        assert response.json['message'] == 'Unauthorized'
+
+
 def test_organizations(client):
     user_info = add_test_user(client, Role.ORGANIZATION)
     _, session_id = get_admin_with_mfa(client)
@@ -104,6 +151,15 @@ def test_organizations(client):
 
     delete_test_user(client)
 
+def test_organizations_no_perms(client):
+    for session_id in [get_organization_with_mfa(client)[1], get_researcher_with_mfa(client)[1]]:
+
+        with client.application.app_context():
+            client.set_cookie('session_id', session_id)
+            response = client.get('/api/admin/organizations')
+        assert response.status_code == 403
+        assert response.json['message'] == 'Unauthorized'
+
 def test_user(client):
     _, session_id = get_admin_with_mfa(client)
 
@@ -121,6 +177,18 @@ def test_user(client):
         "email": RESEARCHER["email"],
         "auth_stage": AuthStage.MFA_VERIFIED.value
     }
+
+def test_user_no_perms(client):
+    for session_id in [get_organization_with_mfa(client)[1], get_researcher_with_mfa(client)[1]]:
+
+        with client.application.app_context():
+            u = User.query.filter_by(email=RESEARCHER["email"]).first()
+            client.set_cookie('session_id', session_id)
+            response = client.get('/api/admin/user', json={
+                "user_id": u.id
+            })
+        assert response.status_code == 403
+        assert response.json['message'] == 'Unauthorized'
 
 def add_unapproved_organization(client):
     org_info = {
@@ -167,6 +235,28 @@ def test_approve_organization(client):
 
     delete_unapproved_organization(client)
 
+def test_approve_organization_no_perms(client):
+    org_info = add_unapproved_organization(client)
+    for session_id in [get_organization_with_mfa(client)[1], get_researcher_with_mfa(client)[1]]:
+
+        with client.application.app_context():
+            org = User.query.filter_by(email=org_info["email"]).first()
+            assert org is not None
+            assert org.md == json.dumps({'approved': False, 'logo_url': 'example.com'})
+
+            client.set_cookie('session_id', session_id)
+            response = client.get('/api/admin/approve-organization', json={
+                "organization_id": org.id
+            })
+
+            org = User.query.filter_by(email=org_info["email"]).first()
+            assert org.md == json.dumps({'approved': False, 'logo_url': 'example.com'})
+
+        assert response.status_code == 403
+        assert response.json['message'] == 'Unauthorized'
+
+    delete_unapproved_organization(client)
+
 def add_test_request(client, state):
     request_info = {
         'title': 'Test Request',
@@ -210,6 +300,27 @@ def test_approve_request(client):
     assert response.json['message'] == 'Request approved'
     delete_test_request(client)
 
+def test_approve_request_no_perms(client):
+    request_info = add_test_request(client, JobRequestState.SUBMITTED)
+    for session_id in [get_organization_with_mfa(client)[1], get_researcher_with_mfa(client)[1]]:
+
+        with client.application.app_context():
+            r = JobRequest.query.filter_by(title=request_info["title"]).first()
+            assert r is not None
+            assert r.state == JobRequestState.SUBMITTED
+
+            client.set_cookie('session_id', session_id)
+            response = client.post('/api/admin/approve-request', json={
+                "request_id": r.id
+            })
+
+            r = JobRequest.query.filter_by(title=request_info['title']).first()
+            assert r.state == JobRequestState.SUBMITTED
+        
+        assert response.status_code == 403
+        assert response.json['message'] == 'Unauthorized'
+    delete_test_request(client)
+
 def test_reject_request(client):
     _, session_id = get_admin_with_mfa(client)
     request_info = add_test_request(client, JobRequestState.SUBMITTED)
@@ -231,6 +342,26 @@ def test_reject_request(client):
     assert response.json['message'] == 'Request rejected'
     delete_test_request(client)
 
+def test_delete_request_no_perms(client):
+    request_info = add_test_request(client, JobRequestState.SUBMITTED)
+    for session_id in [get_organization_with_mfa(client)[1], get_researcher_with_mfa(client)[1]]:
+
+        with client.application.app_context():
+            r = JobRequest.query.filter_by(title=request_info["title"]).first()
+            assert r is not None
+
+            client.set_cookie('session_id', session_id)
+            response = client.post('/api/admin/delete-request', json={
+                "request_id": r.id
+            })
+
+            r = JobRequest.query.filter_by(title=request_info['title']).first()
+            assert r is not None
+        
+        assert response.status_code == 403
+        assert response.json['message'] == 'Unauthorized'
+    delete_test_request(client)
+
 def test_delete_request(client):
     _, session_id = get_admin_with_mfa(client)
     request_info = add_test_request(client, JobRequestState.SUBMITTED)
@@ -249,3 +380,24 @@ def test_delete_request(client):
     
     assert response.status_code == 200
     assert response.json['message'] == 'Request deleted'
+
+def test_reject_request_no_perms(client):
+    request_info = add_test_request(client, JobRequestState.SUBMITTED)
+    for session_id in [get_organization_with_mfa(client)[1], get_researcher_with_mfa(client)[1]]:
+
+        with client.application.app_context():
+            r = JobRequest.query.filter_by(title=request_info["title"]).first()
+            assert r is not None
+            assert r.state == JobRequestState.SUBMITTED
+
+            client.set_cookie('session_id', session_id)
+            response = client.post('/api/admin/reject-request', json={
+                "request_id": r.id
+            })
+
+            r = JobRequest.query.filter_by(title=request_info['title']).first()
+            assert r.state == JobRequestState.SUBMITTED
+        
+        assert response.status_code == 403
+        assert response.json['message'] == 'Unauthorized'
+    delete_test_request(client)
