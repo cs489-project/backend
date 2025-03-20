@@ -28,6 +28,12 @@ def login_password():
     if not user:
         return jsonify(login_error), login_error_code
     
+    if request.headers.get('Referer').endswith('org') and user.role != Role.ORGANIZATION:
+        return jsonify(login_error), login_error_code
+    
+    if not request.headers.get('Referer').endswith('org') and user.role == Role.ORGANIZATION:
+        return jsonify(login_error), login_error_code
+    
     if not verify_password(user.password, password, user.salt):
         return jsonify(login_error), login_error_code
     
