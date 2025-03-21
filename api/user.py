@@ -42,7 +42,7 @@ def login_password():
     except:
         return jsonify({"error": "Try again later"}), 429
     response = jsonify({"message": "Logged in"})
-    response.set_cookie('session_id', session_id, httponly=True, secure=True)
+    response.set_cookie('session_id', session_id, httponly=True) # FIXME: Get rid of secure=True as development server does not support HTTPS
     return response, 200
 
 
@@ -101,7 +101,7 @@ def register():
     except:
         return jsonify({"error": "Try again later"}), 429
     response = jsonify({"message": "Registered"})
-    response.set_cookie('session_id', session_id, httponly=True, secure=True)
+    response.set_cookie('session_id', session_id, httponly=True) # FIXME: Get rid of secure=True as development server does not support HTTPS
     return response, 200
 
 @users_bp.route('/register-org', methods=['POST'])
@@ -138,7 +138,7 @@ def register_org():
     except:
         return jsonify({"error": "Try again later"}), 429
     response = jsonify({"message": "Registered"})
-    response.set_cookie('session_id', session_id, httponly=True, secure=True)
+    response.set_cookie('session_id', session_id, httponly=True) # FIXME: Get rid of secure=True as development server does not support HTTPS
     return response, 200
 
 
