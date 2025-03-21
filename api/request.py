@@ -47,7 +47,7 @@ def update_request():
 
     r = db_client.session.query(JobRequest).filter_by(id=request_id).first()
 
-    if r.organization_id != org.id:
+    if not r or r.organization_id != org.id:
         return jsonify({"error": "Error finding report or invalid credentials"}), 404
 
     r.title = title
@@ -172,7 +172,7 @@ def get_all():
 # @check_auth_stage()
 def get_by_id():
     u: User = request.user
-    request_id: str = request.args.get('request_id')
+    request_id: str | None = request.args.get('request_id')
     if not request_id:
         return jsonify({"message": "request_id query param is required"}), 400 
     
