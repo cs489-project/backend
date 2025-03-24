@@ -97,7 +97,7 @@ def get_all():
                 'unread': _.org_has_unread,
                 'status': _.status.value,
                 'commentCount': len(db_client.session.query(Comment).filter_by(report_id=_.id).all()),
-                'organization': _.job_request.organization.name,
+                'jobRequestTitle': _.job_request.title,
                 'logo': loads(_.job_request.organization.md)['logo_url'],
                 'user': _.user.name
             } for _ in reports]
@@ -110,8 +110,9 @@ def get_all():
 @check_roles([Role.RESEARCHER, Role.ORGANIZATION])
 def get_by_id():
     u: User = request.user
-    data = request.json
-    report_id: str = data.get('report_id')
+    report_id: str | None = request.args.get('report_id')
+    if not report_id:
+        return jsonify({"message": "report_id query param is required"}), 400
     
     if u.role == Role.RESEARCHER:
         r = db_client.session.query(Report).filter_by(id=report_id).first()
