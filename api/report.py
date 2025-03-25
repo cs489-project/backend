@@ -84,6 +84,7 @@ def get_all():
                 'status': _.status.value,
                 'commentCount': len(db_client.session.query(Comment).filter_by(report_id=_.id).all()),
                 'organization': _.job_request.organization.name,
+                'jobRequestTitle': _.job_request.title,
                 'logo': loads(_.job_request.organization.md)['logo_url'],
                 'user': _.user.name
             } for _ in reports]
@@ -127,6 +128,7 @@ def get_by_id():
                 'commentCount': len(db_client.session.query(Comment).filter_by(report_id=_.id).all()),
                 'comments': [{'message': c.content, 'senderName': c.user.name, 'timestamp': c.created_at} for c in db_client.session.query(Comment).filter_by(report_id=_.id).all()],
                 'organization': _.job_request.organization.name,
+                'jobRequestTitle': _.job_request.title,
                 'logo': loads(_.job_request.organization.md)['logo_url'],
                 'user': _.user.name
             } for _ in [r]][0]
@@ -144,7 +146,7 @@ def get_by_id():
                 'status': _.status.value,
                 'commentCount': len(db_client.session.query(Comment).filter_by(report_id=_.id).all()),
                 'comments': [{'message': c.content, 'senderName': c.user.name, 'timestamp': c.created_at} for c in db_client.session.query(Comment).filter_by(report_id=_.id).all()],
-                'organization': _.job_request.organization.name,
+                'jobRequestTitle': _.job_request.title,
                 'logo': loads(_.job_request.organization.md)['logo_url'],
                 'user': _.user.name
             } for _ in [r]][0]
