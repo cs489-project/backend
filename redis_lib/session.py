@@ -27,9 +27,9 @@ def set_session_pending_mfa(user_id: int):
     Returns the session ID
     """
     # remove any existing session if it exists
-    session_id = redis_client.get(f"user:{user_id}:session")
-    if session_id:
-        session_id = session_id.decode('utf-8')
+    session_id_b: bytes = redis_client.get(f"user:{user_id}:session")
+    if session_id_b:
+        session_id = session_id_b.decode('utf-8')
         key = get_session_key(session_id)
         session = get_and_decode(key)
         if session and float(session["created_at"]) + MIN_REFRESH_INTERVAL > time.time():
@@ -53,7 +53,7 @@ def set_session_pending_mfa(user_id: int):
     return session_id
 
 def get_and_decode(key: str) -> dict:
-    session = redis_client.hgetall(key)
+    session: dict[bytes, bytes] = redis_client.hgetall(key)
     return {k.decode('utf-8'): v.decode('utf-8') for k, v in session.items()}
 
 def set_session_mfa_verified(session_id: str):
