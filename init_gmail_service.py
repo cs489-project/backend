@@ -1,5 +1,3 @@
-from util.gmail_service import init, send_verify_email
+from util.gmail_service import init
 
 init()
-
-send_verify_email("some code here asd1234")

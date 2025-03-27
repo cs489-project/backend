@@ -13,9 +13,6 @@ SCOPES = ["https://www.googleapis.com/auth/gmail.readonly", "https://www.googlea
 
 # need to be run before the script can be used
 def init():
-  """Shows basic usage of the Gmail API.
-  Lists the user's Gmail labels.
-  """
   # The file token.json stores the user's access and refresh tokens, and is
   # created automatically when the authorization flow completes for the first
   # time.
@@ -51,59 +48,43 @@ def get_creds_closure():
       return creds
     if os.path.exists("token.json"):
       return Credentials.from_authorized_user_file("token.json", SCOPES)
+    if creds and creds.expired and creds.refresh_token:
+      creds.refresh(Request())
+      # Save the credentials for the next run
+      with open("token.json", "w") as token:
+        token.write(creds.to_json())
+      return creds
     return None
   return get_creds
 
 get_creds = get_creds_closure()
 
-def test():
-  try:
-    # Call the Gmail API
-    service = build("gmail", "v1", credentials=get_creds())
-    results = service.users().labels().list(userId="me").execute()
-    labels = results.get("labels", [])
-
-    if not labels:
-      print("No labels found.")
-      return
-    print("Labels:")
-    for label in labels:
-      print(label["name"])
-
-  except HttpError as error:
-    # TODO(developer) - Handle errors from gmail API.
-    print(f"An error occurred: {error}")
-
-
-def send_verify_email(user_email, code: str):
+def send_email(user_email: str, subject: str, content: str):
   """Create and send an email message
   Print the returned  message id
   Returns: Message object, including message id
   """
 
-  try:
-    service = build("gmail", "v1", credentials=get_creds())
-    message = EmailMessage()
+  service = build("gmail", "v1", credentials=get_creds())
+  message = EmailMessage()
 
-    message.set_content("Please click the link to verify your email address: http://localhost/api/users/verify?code=" + code)
+  message.set_content(content)
 
-    message["To"] = user_email
-    message["From"] = "teambytebreakers.com"
-    message["Subject"] = "Please verify your email address"
+  print("sending to user_email", user_email, flush=True)
+  message["To"] = user_email
+  message["From"] = "teambytebreakers.com"
+  message["Subject"] = subject
 
-    # encoded message
-    encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
+  # encoded message
+  encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
 
-    create_message = {"raw": encoded_message}
-    # pylint: disable=E1101
-    send_message = (
-        service.users()
-        .messages()
-        .send(userId="me", body=create_message)
-        .execute()
-    )
-    print(f'Message Id: {send_message["id"]}')
-  except HttpError as error:
-    print(f"An error occurred: {error}")
-    send_message = None
+  create_message = {"raw": encoded_message}
+  # pylint: disable=E1101
+  send_message = (
+      service.users()
+      .messages()
+      .send(userId="me", body=create_message)
+      .execute()
+  )
+  print(send_message, flush=True)
   return send_message
