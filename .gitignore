@@ -3,3 +3,5 @@ logs
 __pycache__
 .mypy_cache
 .pytest_cache
+credentials.json
+token.json
