@@ -4,7 +4,7 @@ from db.client import db_client
 from middleware.auth import SessionAuthStage, check_auth_stage, authenticate, check_roles
 from middleware.logger import ignore_fields_for_logging
 from util.auth import generate_salt, generate_totp_secret, get_totp_auth_uri, hash_password, verify_password, verify_totp
-from json import dumps
+from json import dumps, loads
 import re
 import redis_lib.session as session
 
@@ -106,6 +106,51 @@ def register():
     response.set_cookie('session_id', session_id, httponly=True) # FIXME: Get rid of secure=True as development server does not support HTTPS
     return response, 200
 
+@users_bp.route("/change-password", methods=['PUT'])
+@authenticate()
+def change_password():
+    data = request.json
+    old_password: str = data.get('old_password')
+    password: str = data.get('password')
+    user: User = request.user
+
+    if (len(password) < 10 or len(password) > 64):
+        return jsonify({"error": "New password must be between 10 to 64 characters"}), 400
+    if (len(old_password) < 10 or len(old_password) > 64):
+        return jsonify({"error": "Old password should be between 10 to 64 characters"}), 400
+
+    if not verify_password(user.password, old_password, user.salt):
+        return jsonify({"error": "old password incorrect"}), 400
+
+    salt = generate_salt()
+    hashed_new_password = hash_password(password, salt)
+
+    try:
+        user = db_client.session.query(User).filter_by(email=user.email).first()
+        user.password = hashed_new_password
+        user.salt = salt
+        db_client.session.commit()
+    except:
+        return jsonify({"error": "Error updating password"}), 400
+
+    return jsonify({"message": "Password updated successfully"}), 200
+
+@users_bp.route("/update-org-logo", methods=['PUT'])
+@authenticate()
+def update_org_logo():
+    data = request.json
+    logo_url: str = data.get('logo_url')
+    user: User = request.user
+
+    try:
+        user = db_client.session.query(User).filter_by(email=user.email).first()
+        user.md = dumps({'approved': loads(user.md)["approved"], 'logo_url': logo_url})
+        db_client.session.commit()
+    except:
+        return jsonify({"error": "Error updating Company Logo"}), 400
+
+    return jsonify({"message": "Logo URL updated"}), 200
+
 @users_bp.route('/register-org', methods=['POST'])
 @ignore_fields_for_logging(["password"])
 def register_org():
@@ -113,7 +158,6 @@ def register_org():
     name: str = data.get('name')
     email: str = data.get('email')
     password: str = data.get('password')
-    logo_url: str = data.get('logo_url')
     if (len(password) < 10 or len(password) > 64):
         return jsonify({"error": "Password must be between 10 to 64 characters"}), 400
     if not re.compile(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').match(email):
@@ -122,8 +166,6 @@ def register_org():
         return jsonify({"error": "Name cannot be empty"}), 400
     if db_client.session.query(User).filter_by(email=email).first():
         return jsonify({"error": "User already exists"}), 400
-    if not logo_url:
-        return jsonify({"error": "Logo URL cannot be empty"}), 400
 
     salt = generate_salt()
     hashed_password = hash_password(password, salt)
@@ -172,7 +214,8 @@ def me():
         "name": user.name, 
         "email": user.email, 
         "role": user.role.value,
-        "auth_stage": user.auth_stage.value
+        "auth_stage": user.auth_stage.value,
+        "metadata": loads(user.md)
     }), 200
 
 # sanity check routes

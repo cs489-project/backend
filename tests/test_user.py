@@ -120,7 +120,6 @@ test_register_org_empty_email
 test_register_org_empty_name
 test_register_org_too_long_password
 test_register_org_duplicate_user
-test_register_org_missing_logo
 =================================================
 """
 
@@ -223,15 +222,6 @@ def test_register_org_duplicate_user(client):
         user = User.query.filter_by(email=ORGANIZATION['email']).all()
         assert len(user) == 1
 
-def test_register_org_missing_logo(client): 
-    response = client.post('/api/users/register-org', json={
-        "name": "Test Org",
-        "email": "missinglogo@test.com",
-        "password": "password10",
-        "logo_url": ""
-    })
-    assert response.status_code == 400
-    assert response.json['error'] == 'Logo URL cannot be empty'
 """
 =================================================
 -------------------------------------------------
