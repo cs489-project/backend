@@ -120,9 +120,13 @@ def get_by_id():
 
         if not r or r.user_id != u.id:
             return jsonify({"error": "Error finding report or invalid credentials"}), 404
-        
-        r.user_has_unread = False
-        
+
+        try:
+            r.user_has_unread = False
+            db_client.session.commit()
+        except:
+            return jsonify({"error": "Error marking report as read"}), 400
+
         r = [{
                 'id': _.id,
                 'unread': _.user_has_unread,
@@ -141,8 +145,12 @@ def get_by_id():
 
         if not r or r.job_request.organization_id != u.id:
             return jsonify({"error": "Error finding report or invalid credentials"}), 404
-        
-        r.org_has_unread = False
+
+        try:
+            r.org_has_unread = False
+            db_client.session.commit()
+        except:
+            return jsonify({"error": "Error marking report as read"}), 400
 
         r = [{
                 'id': _.id,
