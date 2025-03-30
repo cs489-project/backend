@@ -126,7 +126,6 @@ def change_password():
     hashed_new_password = hash_password(password, salt)
 
     try:
-        user = db_client.session.query(User).filter_by(email=user.email).first()
         user.password = hashed_new_password
         user.salt = salt
         db_client.session.commit()
@@ -143,7 +142,6 @@ def update_org_logo():
     user: User = request.user
 
     try:
-        user = db_client.session.query(User).filter_by(email=user.email).first()
         user.md = dumps({'approved': loads(user.md)["approved"], 'logo_url': logo_url})
         db_client.session.commit()
     except:
@@ -169,7 +167,7 @@ def register_org():
 
     salt = generate_salt()
     hashed_password = hash_password(password, salt)
-    user = User(name=name, email=email, password=hashed_password, salt=salt, role=Role.ORGANIZATION, md=dumps({'approved': False, 'logo_url': logo_url}))
+    user = User(name=name, email=email, password=hashed_password, salt=salt, role=Role.ORGANIZATION, md=dumps({'approved': False}))
 
     try:
         db_client.session.add(user)
