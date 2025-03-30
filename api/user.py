@@ -5,8 +5,10 @@ from middleware.auth import SessionAuthStage, check_auth_stage, authenticate, ch
 from middleware.logger import ignore_fields_for_logging
 from util.auth import generate_salt, generate_totp_secret, get_totp_auth_uri, hash_password, verify_password, verify_totp
 from json import dumps, loads
+from util.rate_limiter import limiter
 import re
-import redis_lib.session as session
+from redis_lib import session, tokens as redis_tokens
+from util.gmail_service import send_email
 
 users_bp = Blueprint('users', __name__)
 
@@ -48,6 +50,55 @@ def login_password():
     return response, 200
 
 
+@users_bp.route('/verify-email', methods=['GET'])
+@authenticate()
+@check_auth_stage() # users must do MFA before email verification
+def verify_email():
+    token = request.args.get('token')
+    if not token:
+        return jsonify({"error": "Invalid token"}), 400
+    user: User = request.user
+    if token != redis_tokens.get_user_verification_token(user.id):
+        return jsonify({"error": "Invalid token"}), 400
+    user.auth_stage = AuthStage.EMAIL_VERIFIED
+    db_client.session.commit()
+    return jsonify({"message": "Email verified"}), 200
+    
+    
+def send_verification_email(user: User):
+    token = redis_tokens.set_user_verification_token(user.id)
+    verification_link = f"http://localhost/api/users/verify-email?token={token}"
+    content = f"Click the link to verify your email: {verification_link}"
+    send_email(
+        user.email,
+        "ByteBreakers Email Verification",
+        content,
+    )
+
+@users_bp.route('/send-verification-email', methods=['POST'])
+@authenticate()
+@check_auth_stage()
+def send_verification_email_route():
+    user: User = request.user
+    send_verification_email(user)
+    return jsonify({"message": "Verification email sent"}), 200
+
+# @limiter.limit("1 per 10 minute")
+# @users_bp.route('/forgot-password', methods=['POST'])
+# @authenticate()
+# def forgot_password():
+#     user: User = request.user
+#     token = email_verification.set_verification_token(user.id)
+#     verification_link = f"http://localhost/api/users/reset-password?token={token}"
+#     content = f"Click the link to reset your password: {verification_link}"
+#     send_email(
+#         user.email,
+#         content,
+#         "ByteBreakers Password Reset"
+#     )
+#     return jsonify({"message": "Password reset email sent"}), 200
+
+
 @users_bp.route('/login-mfa', methods=['POST'])
 @ignore_fields_for_logging(["code"])
 @authenticate()
@@ -68,9 +119,11 @@ def login_mfa():
     if user.auth_stage == AuthStage.PENDING_MFA:
         user.auth_stage = AuthStage.MFA_VERIFIED
         db_client.session.commit()
+        send_verification_email(user)
     session.set_session_mfa_verified(session_id)
     return jsonify({"message": "Logged in"}), 200
 
+@limiter.limit("1 per minute")
 @users_bp.route('/register', methods=['POST'])
 @ignore_fields_for_logging(["password"])
 def register():
@@ -149,6 +202,7 @@ def update_org_logo():
 
     return jsonify({"message": "Logo URL updated"}), 200
 
+@limiter.limit("200 per minute")
 @users_bp.route('/register-org', methods=['POST'])
 @ignore_fields_for_logging(["password"])
 def register_org():
