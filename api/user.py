@@ -221,7 +221,7 @@ def register_org():
 
     salt = generate_salt()
     hashed_password = hash_password(password, salt)
-    user = User(name=name, email=email, password=hashed_password, salt=salt, role=Role.ORGANIZATION, md=dumps({'approved': False}))
+    user = User(name=name, email=email, password=hashed_password, salt=salt, role=Role.ORGANIZATION, md=dumps({'approved': False, logo_url: None}))
 
     try:
         db_client.session.add(user)
