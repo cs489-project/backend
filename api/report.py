@@ -36,7 +36,7 @@ def accept_report():
     report_id: str = data.get('report_id')
 
     r = db_client.session.query(Report).filter_by(id=report_id).first()
-    if not r or r.organization != org:
+    if not r or r.job_request.organization != org:
         return jsonify({"error": "Error finding report or invalid credentials"}), 404
 
     r.status = ReportState.ACCEPTED
@@ -57,7 +57,7 @@ def reject_report():
     report_id: str = data.get('report_id')
 
     r = db_client.session.query(Report).filter_by(id=report_id).first()
-    if not r or r.organization != org:
+    if not r or r.job_request.organization != org:
         return jsonify({"error": "Error finding report or invalid credentials"}), 404
 
     r.status = ReportState.REJECTED
