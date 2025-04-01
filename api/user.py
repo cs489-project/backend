@@ -37,12 +37,20 @@ def login_password():
     
     if not ref.endswith('org') and user.role == Role.ORGANIZATION:
         return jsonify(login_error), login_error_code
-    
+
+    if ref.endswith('admin') and user.role != Role.ADMIN:
+        return jsonify(login_error), login_error_code
+
     if not verify_password(user.password, password, user.salt):
         return jsonify(login_error), login_error_code
     
     try:
-        session_id = session.set_session_pending_mfa(user.id)
+        if user.role != Role.ADMIN:
+            session_id = session.set_session_pending_mfa(user.id)
+        else:
+            # admin uses passcode instead of regular passwords with MFA
+            session_id = session.set_session_pending_mfa(user.id)
+            session.set_session_mfa_verified(session_id)
     except:
         return jsonify({"error": "Try again later"}), 429
     response = jsonify({"message": "Logged in"})

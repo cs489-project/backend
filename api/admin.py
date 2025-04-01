@@ -34,30 +34,34 @@ def researchers():
 
 @admin_bp.route('/organizations', methods=['GET'])
 @authenticate()
-@check_auth_stage()
+@check_auth_stage(session_auth_stage = SessionAuthStage.PASSWORD)
 @check_roles([Role.ADMIN])
 def organizations():
     users = db_client.session.query(User).filter_by(role=Role.ORGANIZATION).all()
-    return jsonify([{"name": user.name, "email": user.email, "id": user.id} for user in users]), 200
+    return jsonify([{"name": user.name, "email": user.email, "id": user.id, "metadata": loads(user.md)} for user in users]), 200
 
-@admin_bp.route('/user', methods=['GET'])
+@admin_bp.route('/submitted-postings', methods=['GET'])
 @authenticate()
-@check_auth_stage()
+@check_auth_stage(session_auth_stage = SessionAuthStage.PASSWORD)
 @check_roles([Role.ADMIN])
-def user():
-    user_id: int = request.json.get('user_id')
-    user = db_client.session.query(User).filter_by(id=user_id).first()
-    if not user:
-        return jsonify({"error": "User not found"}), 404
-    return jsonify({
-        "name": user.name, 
-        "email": user.email, 
-        "id": user.id,
-        "auth_stage": user.auth_stage.value
-    }), 200
+def submitted_job_postings():
+    job_requests = db_client.session.query(JobRequest).filter_by(state=JobRequestState.SUBMITTED).all()
 
+    r = [{
+        'id': _.id,
+        'state': _.state.value,
+        'title': _.title,
+        'company': _.organization.name,
+        'datePosted': _.updated_at,
+        'previewDescription': _.summary,
+        'detailedDescription': _.description,
+        'tags': loads(_.tags),
+        'responsibleDisclosureUrl': _.disclosure_policy_url
+    } for _ in job_requests]
 
-@admin_bp.route('/approve-organization', methods=['GET'])
+    return jsonify(r), 200
+
+@admin_bp.route('/approve-organization', methods=['POST'])
 @authenticate()
 @check_auth_stage()
 @check_roles([Role.ADMIN])
