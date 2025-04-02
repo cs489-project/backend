@@ -109,8 +109,6 @@ def archive():
         return jsonify({"error": "Error archiving request"}), 400
     return jsonify({"message": "Request archived"}), 200
 
-# TODO: edit_request()
-
 @requests_bp.route('/get-all', methods=['GET'])
 @authenticate()
 @check_auth_stage()
