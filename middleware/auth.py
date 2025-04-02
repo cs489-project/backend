@@ -17,7 +17,7 @@ def min_session_auth_stage(session_auth_stage: SessionAuthStage, minimum_session
     stages = [SessionAuthStage.PASSWORD, SessionAuthStage.MFA]
     return stages.index(session_auth_stage) >= stages.index(minimum_session_auth_stage)
 
-def authenticate():
+def authenticate(check_csrf: bool = False):
     """
     Authenticate the user based on the session ID in the request cookie.
     Attaches the user and session to the request object.
@@ -45,6 +45,11 @@ def authenticate():
                 print("No user found for session", session)
                 return jsonify(invalid_session), 400
             
+            if check_csrf and request.json:
+                csrf_token = request.json.get("csrf_token")
+                if csrf_token != session["csrf_token"]:
+                    return jsonify({"error": "Invalid CSRF token"}), 403
+
             request.user = user
             request.session = session
             request.session_id = session_id

@@ -15,6 +15,9 @@ class SessionAuthStage(Enum):
 def generate_session_id(length=32) -> str:
     return secrets.token_urlsafe(length)
 
+def generate_csrf_token(length=32) -> str:
+    return secrets.token_urlsafe(length)
+
 def get_session_key(session_id: str) -> str:
     return f"session:{session_id}"
 
@@ -44,6 +47,7 @@ def set_session_pending_mfa(user_id: int):
         "auth_stage": SessionAuthStage.PASSWORD.name,
         "created_at": time.time(),
         "last_active": time.time(),
+        "csrf_token": generate_csrf_token(),
     }
     redis_client.hset(key, mapping=val)
     redis_client.expire(key, SHORT_TIMEOUT)

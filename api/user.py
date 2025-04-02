@@ -278,6 +278,12 @@ def me():
         "metadata": loads(user.md)
     }), 200
 
+@users_bp.route('/get-csrf', methods=['GET'])
+@authenticate()
+def get_csrf():
+    session: dict = request.session
+    return jsonify({"csrf_token": session["csrf_token"]}), 200
+
 # sanity check routes
 @users_bp.route('/check-admin-researcher', methods=['GET'])
 @authenticate()
