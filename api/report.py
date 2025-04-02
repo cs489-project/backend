@@ -1,15 +1,14 @@
 from flask import Blueprint, request, jsonify
 from db.models import Report, ReportState, Role, User, JobRequest, Comment
 from db.client import db_client
-from middleware.auth import authenticate, check_roles
+from middleware.auth import authenticate, check_roles, check_auth_stage
 from json import loads, dumps
 
 reports_bp = Blueprint('reports', __name__)
 
-# TODO: Uncomment check_auth_stage()
 @reports_bp.route('/create-report', methods=['POST'])
-@authenticate()
-# @check_auth_stage()
+@authenticate(check_csrf=True)
+@check_auth_stage()
 @check_roles([Role.RESEARCHER])
 def create_report():
     user: User = request.user
@@ -27,8 +26,8 @@ def create_report():
     return jsonify({"message": "Report created"}), 200
 
 @reports_bp.route('/accept-report', methods=['POST'])
-@authenticate()
-# @check_auth_stage()
+@authenticate(check_csrf=True)
+@check_auth_stage()
 @check_roles([Role.ORGANIZATION])
 def accept_report():
     org: User = request.user
@@ -48,8 +47,8 @@ def accept_report():
     return jsonify({"message": "Report accepted"}), 200
 
 @reports_bp.route('/reject-report', methods=['POST'])
-@authenticate()
-# @check_auth_stage()
+@authenticate(check_csrf=True)
+@check_auth_stage()
 @check_roles([Role.ORGANIZATION])
 def reject_report():
     org: User = request.user
@@ -70,7 +69,7 @@ def reject_report():
 
 @reports_bp.route('/get-all', methods=['GET'])
 @authenticate()
-# @check_auth_stage()
+@check_auth_stage()
 @check_roles([Role.RESEARCHER, Role.ORGANIZATION])
 def get_all():
     u: User = request.user
@@ -109,7 +108,7 @@ def get_all():
 
 @reports_bp.route('/get-by-id', methods=['GET'])
 @authenticate()
-# @check_auth_stage()
+@check_auth_stage()
 @check_roles([Role.RESEARCHER, Role.ORGANIZATION])
 def get_by_id():
     u: User = request.user
@@ -170,8 +169,8 @@ def get_by_id():
         return jsonify({"message": "Report returned", "report": r}), 200
 
 @reports_bp.route('/comment', methods=['POST'])
-@authenticate()
-# @check_auth_stage()
+@authenticate(check_csrf=True)
+@check_auth_stage()
 @check_roles([Role.RESEARCHER, Role.ORGANIZATION])
 def comment():
     u: User = request.user

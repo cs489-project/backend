@@ -168,7 +168,7 @@ def register():
     return response, 200
 
 @users_bp.route("/change-password", methods=['PUT'])
-@authenticate()
+@authenticate(check_csrf=True)
 def change_password():
     data = request.json
     old_password: str = data.get('old_password')
@@ -196,7 +196,7 @@ def change_password():
     return jsonify({"message": "Password updated successfully"}), 200
 
 @users_bp.route("/update-org-logo", methods=['PUT'])
-@authenticate()
+@authenticate(check_csrf=True)
 def update_org_logo():
     data = request.json
     logo_url: str = data.get('logo_url')
@@ -260,7 +260,7 @@ def register_mfa():
 
 
 @users_bp.route('/logout', methods=['POST'])
-@authenticate()
+@authenticate(check_csrf=True)
 def logout():
     session.delete_session(request.session_id)
     return jsonify({"message": "Logged out"}), 200

@@ -8,7 +8,7 @@ admin_bp = Blueprint('admin', __name__)
 
 
 @admin_bp.route('/delete-user', methods=['POST'])
-@authenticate()
+@authenticate(check_csrf=True)
 @check_auth_stage()
 @check_roles([Role.ADMIN])
 def delete_user():
@@ -62,7 +62,7 @@ def submitted_job_postings():
     return jsonify(r), 200
 
 @admin_bp.route('/approve-organization', methods=['POST'])
-@authenticate()
+@authenticate(check_csrf=True)
 @check_auth_stage()
 @check_roles([Role.ADMIN])
 def approve_organization():
@@ -81,7 +81,7 @@ def approve_organization():
 
 
 @admin_bp.route('/approve-request', methods=['POST'])
-@authenticate()
+@authenticate(check_csrf=True)
 @check_auth_stage()
 @check_roles([Role.ADMIN])
 def approve_request():
@@ -104,7 +104,7 @@ def approve_request():
     return jsonify({"message": "Request approved"}), 200
 
 @admin_bp.route('/reject-request', methods=['POST'])
-@authenticate()
+@authenticate(check_csrf=True)
 @check_auth_stage()
 @check_roles([Role.ADMIN])
 def reject_request():
@@ -127,7 +127,7 @@ def reject_request():
     return jsonify({"message": "Request rejected"}), 200
 
 @admin_bp.route('/delete-request', methods=['POST'])
-@authenticate()
+@authenticate(check_csrf=True)
 @check_auth_stage()
 @check_roles([Role.ADMIN])
 def delete_request():

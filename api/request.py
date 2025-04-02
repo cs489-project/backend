@@ -1,15 +1,14 @@
 from flask import Blueprint, request, jsonify
 from db.models import JobRequest, JobRequestState, Role, User
 from db.client import db_client
-from middleware.auth import authenticate, check_roles
+from middleware.auth import authenticate, check_roles, check_auth_stage
 from json import loads, dumps
 
 requests_bp = Blueprint('requests', __name__)
 
-# TODO: Uncomment check_auth_stage()
 @requests_bp.route('/create-request', methods=['POST'])
-@authenticate()
-# @check_auth_stage()
+@authenticate(check_csrf=True)
+@check_auth_stage()
 @check_roles([Role.ORGANIZATION])
 def create_request():
     print('create-request')
@@ -32,8 +31,8 @@ def create_request():
     return jsonify({"message": "Request created"}), 200
 
 @requests_bp.route('/update-request', methods=['POST'])
-@authenticate()
-# @check_auth_stage()
+@authenticate(check_csrf=True)
+@check_auth_stage()
 @check_roles([Role.ORGANIZATION])
 def update_request():
     org: User = request.user
@@ -64,8 +63,8 @@ def update_request():
     return jsonify({"message": "Request updated"}), 200
 
 @requests_bp.route('/submit-for-approval', methods=['POST'])
-@authenticate()
-# @check_auth_stage()
+@authenticate(check_csrf=True)
+@check_auth_stage()
 @check_roles([Role.ORGANIZATION])
 def submit_for_approval():
     print('submit-for-approval')
@@ -90,8 +89,8 @@ def submit_for_approval():
     return jsonify({"message": "Request submitted for approval"}), 200
 
 @requests_bp.route('/archive', methods=['POST'])
-@authenticate()
-# @check_auth_stage()
+@authenticate(check_csrf=True)
+@check_auth_stage()
 @check_roles([Role.ORGANIZATION])
 def archive():
     org: User = request.user
@@ -114,7 +113,7 @@ def archive():
 
 @requests_bp.route('/get-all', methods=['GET'])
 @authenticate()
-# @check_auth_stage()
+@check_auth_stage()
 def get_all():
     u: User = request.user
     
@@ -169,7 +168,7 @@ def get_all():
 
 @requests_bp.route('/get-by-id', methods=['GET'])
 @authenticate()
-# @check_auth_stage()
+@check_auth_stage()
 def get_by_id():
     u: User = request.user
     request_id: str | None = request.args.get('request_id')
