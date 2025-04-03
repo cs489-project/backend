@@ -54,7 +54,7 @@ def login_password():
     except:
         return jsonify({"error": "Try again later"}), 429
     response = jsonify({"message": "Logged in"})
-    response.set_cookie('session_id', session_id, httponly=True) # FIXME: Get rid of secure=True as development server does not support HTTPS
+    response.set_cookie('session_id', session_id, httponly=True, secure=True) # FIXME: Get rid of secure=True as development server does not support HTTPS
     return response, 200
 
 
@@ -88,7 +88,10 @@ def send_verification_email(user: User):
 @check_auth_stage()
 def send_verification_email_route():
     user: User = request.user
-    send_verification_email(user)
+    try:
+        send_verification_email(user)
+    except:
+        return jsonify({"error": "Error sending verification email"}), 500
     return jsonify({"message": "Verification email sent"}), 200
 
 # @limiter.limit("1 per 10 minute")
@@ -127,7 +130,10 @@ def login_mfa():
     if user.auth_stage == AuthStage.PENDING_MFA:
         user.auth_stage = AuthStage.MFA_VERIFIED
         db_client.session.commit()
-        send_verification_email(user)
+        try:
+            send_verification_email(user)
+        except:
+            print("Error sending verification email")
     session.set_session_mfa_verified(session_id)
     return jsonify({"message": "Logged in"}), 200
 
@@ -164,10 +170,11 @@ def register():
     except:
         return jsonify({"error": "Try again later"}), 429
     response = jsonify({"message": "Registered"})
-    response.set_cookie('session_id', session_id, httponly=True) # FIXME: Get rid of secure=True as development server does not support HTTPS
+    response.set_cookie('session_id', session_id, httponly=True, secure=True) # FIXME: Get rid of secure=True as development server does not support HTTPS
     return response, 200
 
 @users_bp.route("/change-password", methods=['PUT'])
+@ignore_fields_for_logging(["old_password", "password"])
 @authenticate(check_csrf=True)
 def change_password():
     data = request.json
@@ -242,7 +249,7 @@ def register_org():
     except:
         return jsonify({"error": "Try again later"}), 429
     response = jsonify({"message": "Registered"})
-    response.set_cookie('session_id', session_id, httponly=True) # FIXME: Get rid of secure=True as development server does not support HTTPS
+    response.set_cookie('session_id', session_id, httponly=True, secure=True) # FIXME: Get rid of secure=True as development server does not support HTTPS
     return response, 200
 
 
