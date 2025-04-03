@@ -6,8 +6,8 @@ from json import dumps
 
 def seed_users(session: Session):
     users = [
-        {'name': 'Test Org 1', 'email': 'testorg1@dummy.com', 'password': 'password', 'salt': '', 'totp_secret': '', 'role': Role.ORGANIZATION, 'md': dumps({'approved': True, 'logo_url': 'example.com'})},
-        {'name': 'Test Org 2', 'email': 'testorg2@dummy.com', 'password': 'password', 'salt': '', 'totp_secret': '', 'role': Role.ORGANIZATION, 'md': dumps({'approved': True, 'logo_url': 'example.com'})},
+        {'name': 'Test Org 1', 'email': 'testorg1@dummy.com', 'password': 'password123', 'salt': '', 'totp_secret': '', 'role': Role.ORGANIZATION, 'md': dumps({'approved': True, 'logo_url': 'example.com'})},
+        {'name': 'Test Org 2', 'email': 'testorg2@dummy.com', 'password': 'password123', 'salt': '', 'totp_secret': '', 'role': Role.ORGANIZATION, 'md': dumps({'approved': True, 'logo_url': 'example.com'})},
         {'name': 'Shariiii', 'email': 'shari@bytebreakers.com', 'password': 'password123', 'salt': '', 'totp_secret': '', 'role': Role.RESEARCHER, 'md': '{}'},
         {'name': 'admin', 'email': 'admin@bytebreakers.com', 'password': 'password123', 'salt': '', 'totp_secret': '', 'role': Role.ADMIN, 'auth_stage': AuthStage.EMAIL_VERIFIED, 'md': dumps({'approved': True, 'logo_url': ''})},
         {'name': 'Hackermans', 'email': 'hackermans@bytebreakers.com', 'password': 'password123', 'salt': '', 'totp_secret': '', 'role': Role.RESEARCHER, 'md': '{}'},
