@@ -48,7 +48,7 @@ def get_creds_closure():
       return creds
     if os.path.exists("token.json"):
       return Credentials.from_authorized_user_file("token.json", SCOPES)
-    if creds and creds.expired and creds.refresh_token:
+    if creds and creds.refresh_token:
       creds.refresh(Request())
       # Save the credentials for the next run
       with open("token.json", "w") as token:
