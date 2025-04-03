@@ -114,8 +114,9 @@ def archive():
 @check_auth_stage()
 def get_all():
     u: User = request.user
+    ref = request.headers.get('Referer', '')
     
-    if u.role == Role.RESEARCHER:
+    if u.role == Role.RESEARCHER and 'org' not in ref and 'admin' not in ref:
         requests = db_client.session.query(JobRequest).filter_by(state=JobRequestState.APPROVED).all()
         r = [{
                 'id': _.id,
@@ -131,7 +132,7 @@ def get_all():
             } for _ in requests]
         
         return jsonify({"message": "Requests returned", "requests": r}), 200
-    elif u.role == Role.ORGANIZATION:
+    elif u.role == Role.ORGANIZATION and 'org' in ref:
         requests = db_client.session.query(JobRequest).filter_by(organization_id=u.id).all()
         r = [{
                 'id': _.id,
@@ -147,7 +148,7 @@ def get_all():
             } for _ in requests]
         
         return jsonify({"message": "Requests returned", "requests": r}), 200
-    elif u.role == Role.ADMIN:
+    elif u.role == Role.ADMIN and 'admin' in ref:
         requests = db_client.session.query(JobRequest).all()
         r = [{
                 'id': _.id,
