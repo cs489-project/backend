@@ -164,6 +164,8 @@ def get_all():
             } for _ in requests]
         
         return jsonify({"message": "Requests returned", "requests": r}), 200
+    else:
+        return jsonify({"error": "Invalid permission"}), 401
 
 @requests_bp.route('/get-by-id', methods=['GET'])
 @authenticate()
